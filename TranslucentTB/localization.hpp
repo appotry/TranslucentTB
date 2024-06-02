@@ -19,7 +19,7 @@ namespace Localization {
 	std::thread ShowLocalizedMessageBoxWithFormat(uint16_t resource, UINT type, HINSTANCE hInst, Args&&... args)
 	{
 		const auto msg = LoadLocalizedResourceString(resource, hInst);
-		std::wstring formatted = std::vformat(msg, std::make_wformat_args(std::forward<Args>(args)...));
+		std::wstring formatted = std::vformat(msg, std::make_wformat_args(args...));
 
 		return std::thread([formatted_msg = std::move(formatted), type]() noexcept
 		{
