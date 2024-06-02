@@ -5,12 +5,11 @@ parameters:
   default: ''
 - name: buildType
   default: ''
+- name: extraMsbuildArgs
+  default: ''
 - name: signBuild
   type: boolean
   default: true
-- name: signMsix
-  type: boolean
-  default: false
 - name: includeNuGetOrg
   type: boolean
   default: false
@@ -41,7 +40,7 @@ steps:
     feedsToUse: select
     vstsFeed: TranslucentTB/NugetCache
     includeNuGetOrg: ${{ parameters.includeNuGetOrg }}
-- ${{ if eq(or(parameters.signBuild, parameters.signMsix), true) }}:
+- ${{ if eq(parameters.signBuild, true) }}:
   - task: DownloadSecureFile@1
     name: trustedSigningMetadata
     displayName: 'Download Trusted Signing metadata'
@@ -67,14 +66,10 @@ steps:
     platform: ${{ parameters.platform }}
     solution: $(Build.SourcesDirectory)/TranslucentTB.sln
     ${{ if eq(parameters.signBuild, true) }}:
-      msbuildArgs: /p:CertificateTimestampServer="http://timestamp.acs.microsoft.com" /p:TrustedSigningMetadata="$(trustedSigningMetadata.secureFilePath)" /p:SignToolDigestAlgorithm=sha256 /p:BuildType=${{ parameters.buildType }}
+      msbuildArgs: /p:CertificateTimestampServer="http://timestamp.acs.microsoft.com" /p:TrustedSigningMetadata="$(trustedSigningMetadata.secureFilePath)" /p:SignToolDigestAlgorithm=sha256 /p:BuildType=${{ parameters.buildType }} ${{ parameters.extraMsbuildArgs }}
     ${{ else }}:
-      msbuildArgs: /p:BuildType=${{ parameters.buildType }}
-- ${{ if eq(parameters.signMsix, true) }}:
-  # TODO: use WAPPROJ built-in support once it no longer hangs.
-  - powershell: $(Build.SourcesDirectory)/.azp/scripts/sign-msix.ps1 -Platform "${{ parameters.platform }}" -Configuration "${{ parameters.configuration }}" -TrustedSigningMetadata "$(trustedSigningMetadata.secureFilePath)" -DigestAlgorithm sha256 -TimestampServer "http://timestamp.acs.microsoft.com"
-    displayName: Sign MSIX package
-- ${{ if eq(or(parameters.signBuild, parameters.signMsix), true) }}:
+      msbuildArgs: /p:BuildType=${{ parameters.buildType }} ${{ parameters.extraMsbuildArgs }}
+- ${{ if eq(parameters.signBuild, true) }}:
   - script: az account clear
     displayName: Logout from Azure
     condition: always()

@@ -42,6 +42,16 @@
     <AppxDefaultResourceQualifiers>Language=en-us;de-de;es-us;id-id;ja-jp;tr-tr;zh-cn;zh-tw;ru-ru;uk-ua</AppxDefaultResourceQualifiers>
     <!-- Prevent ucrtbased.dll from being copied to the output -->
     <DisableImplicitUCRTReference>true</DisableImplicitUCRTReference>
+
+    <!-- For backwards compat, I imagine they'll fix it at some point... -->
+    <AzureCodeSigningDlibVersion>$(TrustedSigningDlibVersion)</AzureCodeSigningDlibVersion>
+    <AzureCodeSigningDlibRootFolder>$(TrustedSigningDlibRootFolder)</AzureCodeSigningDlibRootFolder>
+    <AzureCodeSigningDlibBinFolder>$(TrustedSigningDlibBinFolder)</AzureCodeSigningDlibBinFolder>
+    <AzureCodeSigningDlibBinArchFolder>$(TrustedSigningDlibBinArchFolder)</AzureCodeSigningDlibBinArchFolder>
+    <AzureCodeSigningDlibFilePath>$(TrustedSigningDlibFilePath)</AzureCodeSigningDlibFilePath>
+
+    <AppxPackageSigningTimestampDigestAlgorithm>$(SignToolDigestAlgorithm)</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxPackageSigningTimestampServerUrl>$(CertificateTimestampServer)</AppxPackageSigningTimestampServerUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(BuildType)'=='Release'">
     <AppxBundle>Always</AppxBundle>
@@ -94,6 +104,7 @@
     <PropertyPageSchema Include="ResourceFileMapping.xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Trusted.Signing.Client" Version="1.0.60" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1">
       <IncludeAssets>build</IncludeAssets>
     </PackageReference>
