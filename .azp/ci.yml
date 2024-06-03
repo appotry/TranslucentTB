@@ -10,7 +10,6 @@ trigger:
 variables:
 - name: VCPKG_BINARY_SOURCES
   value: 'clear;nuget,https://pkgs.dev.azure.com/TranslucentTB/TranslucentTB/_packaging/VcpkgCache/nuget/v3/index.json,readwrite'
-- group: Trusted Signing
 
 strategy:
   matrix:
@@ -33,7 +32,7 @@ steps:
     platform: $(platform)
     configuration: $(configuration)
     buildType: Canary
-    extraMsbuildArgs: '/p:AppxPackageSigningEnabled=True /p:AzureCodeSigningEnabled=True /p:AzureCodeSigningEndpoint=$(trustedSigningEndpoint) /p:AzureCodeSigningAccountName=$(trustedSigningAccountName) /p:AzureCodeSigningCertificateProfileName=$(trustedSigningCertificateProfileName)'
+    signMsix: true
 - template: templates/upload.yml
   parameters:
     platform: $(platform)
