@@ -29,7 +29,7 @@ VS_VERSION_INFO VERSIONINFO
 {
 	BLOCK L"StringFileInfo"
 	{
-		BLOCK L"040904b0"
+		BLOCK L"041204b0"
 		{
 			VALUE L"FileDescription", APP_NAME
 			VALUE L"FileVersion", APP_VERSION
@@ -44,7 +44,7 @@ VS_VERSION_INFO VERSIONINFO
 	}
 	BLOCK L"VarFileInfo"
 	{
-		VALUE L"Translation", 0x0409, CP_WINUNICODE
+		VALUE L"Translation", 0x0412, CP_WINUNICODE
 	}
 }
 
