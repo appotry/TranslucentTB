@@ -24,6 +24,6 @@ steps:
 - task: GitHubRelease@1
   displayName: Create draft GitHub release
   inputs:
-    gitHubConnection: TranslucentTB
+    gitHubConnection: TranslucentTB Release
     assets: $(Build.ArtifactStagingDirectory)\github\*
     isDraft: true
