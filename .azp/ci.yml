@@ -6,6 +6,8 @@ trigger:
   branches:
     include:
     - '*'
+    exclude:
+    - release
 
 variables:
 - name: VCPKG_BINARY_SOURCES
