@@ -21,6 +21,20 @@ steps:
 - publish: $(Build.ArtifactStagingDirectory)\upload
   artifact: 'Store MSIX'
   displayName: Upload MSIX
+- task: PublishSymbols@2
+  displayName: Publish x64 PDB symbols
+  inputs:
+    SymbolsFolder: $(Build.SourcesDirectory)/AppPackage/bin/x64/Release
+    SearchPattern: '*.pdb'
+    IndexSources: false
+    SymbolServerType: TeamServices
+- task: PublishSymbols@2
+  displayName: Publish ARM64 PDB symbols
+  inputs:
+    SymbolsFolder: $(Build.SourcesDirectory)/AppPackage/bin/ARM64/Release
+    SearchPattern: '*.pdb'
+    IndexSources: false
+    SymbolServerType: TeamServices
 - task: GitHubRelease@1
   displayName: Create draft GitHub release
   inputs:
