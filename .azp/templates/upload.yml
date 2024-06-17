@@ -15,3 +15,11 @@ steps:
 - publish: $(Build.ArtifactStagingDirectory)\msix
   artifact: 'MSIX ${{ parameters.platform }} ${{ parameters.configuration }}'
   displayName: Upload MSIX package
+- task: PublishSymbols@2
+  displayName: Publish PDB symbols
+  inputs:
+    SymbolsFolder: $(Build.SourcesDirectory)/bin/${{ parameters.platform }}/${{ parameters.configuration }}
+    SearchPattern: '*.pdb'
+    IndexSources: false
+    SymbolServerType: TeamServices
+    SymbolExpirationInDays: 365
