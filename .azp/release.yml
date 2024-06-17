@@ -16,11 +16,11 @@ steps:
   displayName: Create x64 portable build
 - powershell: $(Build.SourcesDirectory)/.azp/scripts/create-portable.ps1 -Platform ARM64 -Configuration Release -WorkDir "$(Pipeline.Workspace)" -OutputDir "$(Build.ArtifactStagingDirectory)\github" -NoConfig -Compress
   displayName: Create ARM portable build
-- powershell: $(Build.SourcesDirectory)/.azp/scripts/copy-msix.ps1 -WorkDir "$(Pipeline.Workspace)" -OutputDir "$(Build.ArtifactStagingDirectory)\github" -FromUpload -UploadOutputDir "$(Build.ArtifactStagingDirectory)\upload"
-  displayName: Copy MSIX upload
+- powershell: $(Build.SourcesDirectory)/.azp/scripts/copy-msix.ps1 -OutputDir "$(Build.ArtifactStagingDirectory)\upload"
+  displayName: Copy MSIX
 - publish: $(Build.ArtifactStagingDirectory)\upload
-  artifact: 'Store MSIX upload'
-  displayName: Upload MSIX upload
+  artifact: 'Store MSIX'
+  displayName: Upload MSIX
 - task: GitHubRelease@1
   displayName: Create draft GitHub release
   inputs:
