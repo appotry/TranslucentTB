@@ -12,11 +12,11 @@
 class LoadableDll {
 	wil::unique_hmodule m_hMod;
 
-	static std::filesystem::path GetDllPath(const std::optional<std::filesystem::path>& storageFolder, std::wstring_view dll);
+	static std::filesystem::path GetDllPath(const std::optional<std::filesystem::path>& storageFolder, bool copyDll, std::wstring_view dll);
 	static wil::unique_hmodule LoadDll(const std::filesystem::path &location);
 
 public:
-	LoadableDll(const std::optional<std::filesystem::path> &storagePath, std::wstring_view dll);
+	LoadableDll(const std::optional<std::filesystem::path> &storagePath, bool copyDll, std::wstring_view dll);
 
 	template<typename T>
 	T GetProc(Util::null_terminated_string_view proc)

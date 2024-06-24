@@ -1093,9 +1093,9 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hIns
 	m_SearchVisibilityChangeMessage(Window::RegisterMessage(WM_TTBSEARCHVISIBILITYCHANGE)),
 	m_ForceRefreshTaskbar(Window::RegisterMessage(WM_TTBFORCEREFRESHTASKBAR)),
 	m_LastExplorerPid(0),
-	m_HookDll(storageFolder, L"ExplorerHooks.dll"),
+	m_HookDll(storageFolder, m_Config.CopyDlls.value_or(true), L"ExplorerHooks.dll"),
 	m_InjectExplorerHook(m_HookDll.GetProc<PFN_INJECT_EXPLORER_HOOK>("InjectExplorerHook")),
-	m_TAPDll(storageFolder, L"ExplorerTAP.dll"),
+	m_TAPDll(storageFolder, m_Config.CopyDlls.value_or(true), L"ExplorerTAP.dll"),
 	m_InjectExplorerTAP(m_TAPDll.GetProc<PFN_INJECT_EXPLORER_TAP>("InjectExplorerTAP")),
 	m_IsWindows11(win32::IsAtLeastBuild(22000))
 {
