@@ -154,13 +154,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="resources\TranslucentTB.ico">
+    <Image Include="resources\TranslucentTB.release.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\TranslucentTB.black.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\TranslucentTB.white.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\TranslucentTB.dev.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
