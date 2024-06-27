@@ -166,6 +166,9 @@
     <Image Include="resources\TranslucentTB.dev.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="resources\TranslucentTB.canary.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\TranslucentTB.rc2">
