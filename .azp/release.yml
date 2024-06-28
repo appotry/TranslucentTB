@@ -41,3 +41,13 @@ steps:
     gitHubConnection: TranslucentTB Release
     assets: $(Build.ArtifactStagingDirectory)\github\*
     isDraft: true
+- task: PowerShell@2
+  displayName: Retain build
+  inputs:
+    failOnStderr: true
+    targetType: 'inline'
+    script: |
+      $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
+      $rawRequest = @{ daysValid = 365 * 100; definitionId = $(System.DefinitionId); ownerId = 'User:$(Build.RequestedForId)'; protectPipeline = $false; runId = $(Build.BuildId) };
+      $uri = "$(System.CollectionUri)$(System.TeamProject)/_apis/build/retention/leases?api-version=7.0";
+      Invoke-RestMethod -Uri $uri -method Post -Headers $headers -ContentType "application/json" -Body (ConvertTo-Json @($rawRequest));
