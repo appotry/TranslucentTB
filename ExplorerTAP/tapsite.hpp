@@ -11,8 +11,11 @@ class TAPSite : public winrt::implements<TAPSite, IObjectWithSite, winrt::non_ag
 {
 public:
 	static wil::unique_event_nothrow GetReadyEvent();
+	static DWORD WINAPI Install(void* parameter);
 
 private:
+	static void SignalReady();
+
 	HRESULT STDMETHODCALLTYPE SetSite(IUnknown* pUnkSite) override;
 	HRESULT STDMETHODCALLTYPE GetSite(REFIID riid, void** ppvSite) noexcept override;
 
