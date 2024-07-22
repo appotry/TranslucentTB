@@ -6,8 +6,8 @@
 
 #include "constants.hpp"
 #include "tapsite.hpp"
-#include "win32.hpp"
 #include "taskbarappearanceservice.hpp"
+#include "win32.hpp"
 
 HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv) try
 {

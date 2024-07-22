@@ -364,6 +364,9 @@
     <Midl Include="Converters\ThicknessFilterConverter.idl">
       <SubType>Designer</SubType>
     </Midl>
+    <Midl Include="Models\Primitives\TaskbarType.idl">
+      <SubType>Designer</SubType>
+    </Midl>
     <Midl Include="Models\Primitives\ThicknessFilterKind.idl">
       <SubType>Designer</SubType>
     </Midl>

@@ -47,6 +47,7 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 		DECL_EVENT(ExitRequestedDelegate, ExitRequested, m_ExitRequestedDelegate);
 
 		void SetTaskbarSettings(const txmp::TaskbarState &state, const txmp::TaskbarAppearance &appearance);
+		void SetTaskbarType(const txmp::TaskbarType &type);
 		void SetLogLevel(const txmp::LogLevel &level);
 		void SetDisableSavingSettings(const bool &disabled);
 		void SetStartupState(const wf::IReference<Windows::ApplicationModel::StartupTaskState> &state);

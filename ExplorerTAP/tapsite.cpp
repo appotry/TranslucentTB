@@ -14,7 +14,7 @@ wil::unique_event_nothrow TAPSite::GetReadyEvent()
 	return readyEvent;
 }
 
-DWORD TAPSite::Install(void* parameter)
+DWORD TAPSite::Install(void*)
 {
 	auto [location, hr] = win32::GetDllLocation(wil::GetModuleInstanceHandle());
 	if (FAILED(hr)) [[unlikely]]

@@ -56,6 +56,8 @@ void MainAppWindow::RefreshMenu()
 	const auto &trayPage = page();
 	const auto &settings = m_App.GetConfigManager().GetConfig();
 
+	trayPage.SetTaskbarType(m_App.GetWorker().GetType() == TaskbarType::Classic ? txmp::TaskbarType::Classic : txmp::TaskbarType::XAML);
+
 	trayPage.SetTaskbarSettings(txmp::TaskbarState::Desktop, settings.DesktopAppearance);
 	trayPage.SetTaskbarSettings(txmp::TaskbarState::VisibleWindow, txmp::OptionalTaskbarAppearance(settings.VisibleWindowAppearance));
 	trayPage.SetTaskbarSettings(txmp::TaskbarState::MaximisedWindow, txmp::OptionalTaskbarAppearance(settings.MaximisedWindowAppearance));

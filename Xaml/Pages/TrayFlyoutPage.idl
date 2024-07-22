@@ -2,6 +2,7 @@ import "Models/Primitives/LogLevel.idl";
 import "Models/Primitives/LogSinkState.idl";
 import "Models/Primitives/TaskbarAppearance.idl";
 import "Models/Primitives/TaskbarState.idl";
+import "Models/Primitives/TaskbarType.idl";
 
 namespace TranslucentTB.Xaml.Pages
 {
@@ -46,6 +47,7 @@ namespace TranslucentTB.Xaml.Pages
 		event ExitRequestedDelegate ExitRequested;
 
 		void SetTaskbarSettings(TranslucentTB.Xaml.Models.Primitives.TaskbarState state, TranslucentTB.Xaml.Models.Primitives.TaskbarAppearance appearance);
+		void SetTaskbarType(TranslucentTB.Xaml.Models.Primitives.TaskbarType type);
 		void SetLogLevel(TranslucentTB.Xaml.Models.Primitives.LogLevel level);
 		void SetDisableSavingSettings(Boolean disabled);
 		void SetStartupState(Windows.Foundation.IReference<Windows.ApplicationModel.StartupTaskState> state);

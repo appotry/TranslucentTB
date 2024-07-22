@@ -77,6 +77,32 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 		}
 	}
 
+	void TrayFlyoutPage::SetTaskbarType(const txmp::TaskbarType &type)
+	{
+		for (const wuxc::MenuFlyoutItemBase item : ContextMenu().Items())
+		{
+			if (const auto submenu = item.try_as<wuxc::MenuFlyoutSubItem>())
+			{
+				const auto tag = submenu.Tag().try_as<txmp::TaskbarState>();
+				if (tag)
+				{
+					for (const auto item : submenu.Items())
+					{
+						const auto stringTag = item.Tag().try_as<hstring>();
+						if (stringTag == L"ShowPeek")
+						{
+							item.Visibility(type == txmp::TaskbarType::Classic ? wux::Visibility::Visible : wux::Visibility::Collapsed);
+						}
+						else if (stringTag == L"ShowLine")
+						{
+							item.Visibility(type == txmp::TaskbarType::XAML ? wux::Visibility::Visible : wux::Visibility::Collapsed);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void TrayFlyoutPage::SetLogLevel(const txmp::LogLevel &level)
 	{
 		for (const auto item : LogLevelSubMenu().Items())

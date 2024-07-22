@@ -114,6 +114,7 @@
     <Midl Include="Controls\ConstrainedBox.idl" />
     <Midl Include="Controls\FocusBorderColorSpectrum.idl" />
     <Midl Include="BindableObjectReference.idl" />
+    <Midl Include="Models\Primitives\TaskbarType.idl" />
   </ItemGroup>
   <ItemGroup>
     <PRIResource Include="Strings\en-US\Resources.resw">

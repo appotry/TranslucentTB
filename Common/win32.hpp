@@ -136,7 +136,7 @@ public:
 	{
 		wil::unique_cotaskmem_string system32;
 		const HRESULT hr = SHGetKnownFolderPath(FOLDERID_System, KF_FLAG_DEFAULT, nullptr, system32.put());
-		if (FAILED(hr))
+		if (FAILED(hr)) [[unlikely]]
 		{
 			return { { }, hr };
 		}
