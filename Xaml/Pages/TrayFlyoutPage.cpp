@@ -86,16 +86,16 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 				const auto tag = submenu.Tag().try_as<txmp::TaskbarState>();
 				if (tag)
 				{
-					for (const auto item : submenu.Items())
+					for (const auto submenuItem : submenu.Items())
 					{
-						const auto stringTag = item.Tag().try_as<hstring>();
+						const auto stringTag = submenuItem.Tag().try_as<hstring>();
 						if (stringTag == L"ShowPeek")
 						{
-							item.Visibility(type == txmp::TaskbarType::Classic ? wux::Visibility::Visible : wux::Visibility::Collapsed);
+							submenuItem.Visibility(type == txmp::TaskbarType::Classic ? wux::Visibility::Visible : wux::Visibility::Collapsed);
 						}
 						else if (stringTag == L"ShowLine")
 						{
-							item.Visibility(type == txmp::TaskbarType::XAML ? wux::Visibility::Visible : wux::Visibility::Collapsed);
+							submenuItem.Visibility(type == txmp::TaskbarType::XAML ? wux::Visibility::Visible : wux::Visibility::Collapsed);
 						}
 					}
 				}
