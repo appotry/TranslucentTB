@@ -187,22 +187,19 @@ std::optional<bool> Window::on_current_desktop() const
 
 bool Window::is_user_window() const
 {
-	// partially derived from https://devblogs.microsoft.com/oldnewthing/20071008-00/?p=24863
 	if (valid())
 	{
 		const auto ex_style = get_long_ptr(GWL_EXSTYLE).value_or(0);
-		const bool is_app_window = (ex_style & WS_EX_APPWINDOW) == WS_EX_APPWINDOW;
 		const bool is_tool_window = (ex_style & WS_EX_TOOLWINDOW) == WS_EX_TOOLWINDOW;
-		const bool is_no_activate = (ex_style & WS_EX_NOACTIVATE) == WS_EX_NOACTIVATE;
 
 		// check if the window is visible. A window with WS_EX_TOOLWINDOW is considered not visible.
 		if (!is_tool_window && visible() && !cloaked())
 		{
-			// check if the window has no owner and is top-level. A window with WS_EX_APPWINDOW is considered unowned.
-			if ((is_app_window || get(GW_OWNER) == Window::NullWindow) && ancestor(GA_ROOT) == m_WindowHandle)
+			// check if the window is top-level.
+			if (ancestor(GA_ROOT) == m_WindowHandle)
 			{
-				// ignore prop(L"ITaskList_Deleted") == nullptr for now as it's not possible to get notified when it changes
-				// causes Discord to not trigger TTB when it restores from its tray icon (because it removes that property after becoming visible)
+				const bool is_no_activate = (ex_style & WS_EX_NOACTIVATE) == WS_EX_NOACTIVATE;
+				const bool is_app_window = (ex_style & WS_EX_APPWINDOW) == WS_EX_APPWINDOW;
 
 				// check the window does not have WS_EX_NOACTIVATE (or if it does, it has WS_EX_APPWINDOW)
 				// then check if it's on the current virtual desktop (currently, a cloak check also catches these, but it's an implementation detail)
