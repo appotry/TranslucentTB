@@ -94,7 +94,6 @@ void MainAppWindow::RegisterMenuHandlers()
 	m_ResetSettingsRequestedRevoker = menu.ResetSettingsRequested(winrt::auto_revoke, { this, &MainAppWindow::ResetSettingsRequested });
 	m_ResetDynamicStateRequestedRevoker = menu.ResetDynamicStateRequested(winrt::auto_revoke, { this, &MainAppWindow::ResetDynamicStateRequested });
 	m_DisableSavingSettingsChangedRevoker = menu.DisableSavingSettingsChanged(winrt::auto_revoke, { this, &MainAppWindow::DisableSavingSettingsChanged });
-	m_HideTrayRequestedRevoker = menu.HideTrayRequested(winrt::auto_revoke, { this, &MainAppWindow::HideTrayRequested });
 	m_ResetDynamicStateRequestedRevoker = menu.ResetDynamicStateRequested(winrt::auto_revoke, { this, &MainAppWindow::ResetDynamicStateRequested });
 	m_CompactThunkHeapRequestedRevoker = menu.CompactThunkHeapRequested(winrt::auto_revoke, MainAppWindow::CompactThunkHeapRequested);
 
@@ -225,18 +224,6 @@ void MainAppWindow::ResetSettingsRequested()
 void MainAppWindow::DisableSavingSettingsChanged(bool disabled) noexcept
 {
 	m_App.GetConfigManager().GetConfig().DisableSaving = disabled;
-}
-
-void MainAppWindow::HideTrayRequested()
-{
-	Localization::ShowLocalizedMessageBoxWithCallback(IDS_HIDE_TRAY, MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND, hinstance(), [this](int)
-	{
-		m_App.DispatchToMainThread([this]
-		{
-			m_HideIconOverride = true;
-			Hide();
-		});
-	}).detach();
 }
 
 void MainAppWindow::ResetDynamicStateRequested()

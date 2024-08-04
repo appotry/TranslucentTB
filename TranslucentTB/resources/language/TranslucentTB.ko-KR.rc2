@@ -57,7 +57,6 @@ VS_VERSION_INFO VERSIONINFO
 STRINGTABLE
 {
 	IDS_WELCOME_NOTIFICATION APP_NAME L" 시스템 트레이에 살고 있습니다.\n\n트레이 아이콘을 마우스 오른쪽 버튼으로 클릭하여 설정을 변경하고, 부팅 시 앱이 열리도록 설정하고, 정보를 보고, 앱을 종료하는 등의 작업을 수행합니다."
-	IDS_HIDE_TRAY L"이 변경 사항은 일시적이며 다음에 " APP_NAME L"가 시작되면 손실됩니다.\n\n이 파일을 영구적으로 만들려면 ""고급"" > ""설정 편집""을 사용하여 구성 파일을 편집하고 ""hide_tray""를 ""true""로 설정합니다."
 	IDS_ALREADY_RUNNING APP_NAME L" 가 이미 실행 중입니다! 트레이 아이콘을 마우스 오른쪽 버튼으로 클릭하여 액세스합니다."
 	IDS_LANGUAGE_CHANGED L"구성 파일의 언어 재정의 설정이 변경되었습니다. 변경 사항을 적용하려면 " APP_NAME L"를 다시 시작하십시오."
 	IDS_RESTART_REQUIRED APP_NAME L" 최근에 업데이트되었습니다. 최신 버전을 사용하려면 Windows를 다시 시작하십시오."

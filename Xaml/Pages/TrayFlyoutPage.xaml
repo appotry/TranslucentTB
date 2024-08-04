@@ -378,11 +378,6 @@
                         <FontIcon Glyph="&#xE777;" />
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
-                <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_HideTrayIcon" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="HideTrayClicked">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xED1A;" />
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
                 <ToggleMenuFlyoutItem x:Name="DisableSavingSettings" x:Uid="TrayFlyoutPage_Advanced_DisableHotSettings" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="DisableSavingSettingsClicked" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_ResetDynamicState" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ResetDynamicStateClicked">
