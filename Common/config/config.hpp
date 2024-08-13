@@ -52,6 +52,7 @@ public:
 	spdlog::level::level_enum LogVerbosity = DEFAULT_LOG_VERBOSITY;
 	std::wstring Language;
 	std::optional<bool> UseXamlContextMenu;
+	std::optional<bool> CopyDlls;
 
 	template<class Writer>
 	inline void Serialize(Writer &writer) const
@@ -72,6 +73,7 @@ public:
 			rjh::Serialize(writer, Language, LANGUAGE_KEY);
 		}
 		rjh::Serialize(writer, UseXamlContextMenu, USE_XAML_CONTEXT_MENU_KEY);
+		rjh::Serialize(writer, CopyDlls, COPY_DLLS_KEY);
 	}
 
 	inline void Deserialize(const rjh::value_t &obj, void (*unknownKeyCallback)(std::wstring_view) = nullptr)
@@ -147,6 +149,10 @@ public:
 			{
 				rjh::Deserialize(it->value, UseXamlContextMenu, key);
 			}
+			else if (key == COPY_DLLS_KEY)
+			{
+				rjh::Deserialize(it->value, CopyDlls, key);
+			}
 			else if (unknownKeyCallback)
 			{
 				unknownKeyCallback(key);
@@ -178,4 +184,5 @@ private:
 	static constexpr std::wstring_view LOG_KEY = L"verbosity";
 	static constexpr std::wstring_view LANGUAGE_KEY = L"language";
 	static constexpr std::wstring_view USE_XAML_CONTEXT_MENU_KEY = L"use_xaml_context_menu";
+	static constexpr std::wstring_view COPY_DLLS_KEY = L"copy_dlls";
 };

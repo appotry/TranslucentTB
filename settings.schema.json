@@ -156,6 +156,9 @@
     },
     "use_xaml_context_menu": {
       "type": "boolean"
+    },
+    "copy_dlls": {
+      "type": "boolean"
     }
   },
   "type": "object"

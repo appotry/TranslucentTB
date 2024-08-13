@@ -41,6 +41,9 @@
     <Filter Include="Resources\Strings\uk-UA">
       <UniqueIdentifier>{09b0c717-6adc-41d5-85cd-c605b913d60b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Strings\ko-KR">
+      <UniqueIdentifier>{ff016652-900e-4531-b2f5-8160f949e192}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -111,6 +114,7 @@
     <Midl Include="Controls\ConstrainedBox.idl" />
     <Midl Include="Controls\FocusBorderColorSpectrum.idl" />
     <Midl Include="BindableObjectReference.idl" />
+    <Midl Include="Models\Primitives\TaskbarType.idl" />
   </ItemGroup>
   <ItemGroup>
     <PRIResource Include="Strings\en-US\Resources.resw">
@@ -142,6 +146,9 @@
     </PRIResource>
     <PRIResource Include="Strings\uk-UA\Resources.resw">
       <Filter>Resources\Strings\uk-UA</Filter>
+    </PRIResource>
+    <PRIResource Include="Strings\ko-KR\Resources.resw">
+      <Filter>Resources\Strings\ko-KR</Filter>
     </PRIResource>
   </ItemGroup>
 </Project>

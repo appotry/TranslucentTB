@@ -57,7 +57,6 @@ VS_VERSION_INFO VERSIONINFO
 STRINGTABLE
 {
 	IDS_WELCOME_NOTIFICATION APP_NAME L" 將隱藏在工具列中。\n\n對工具列圖示點擊右鍵以變更設定、設為開機時啟動、檢視關於資訊、關閉應用程式...等。"
-	IDS_HIDE_TRAY L"此變更僅暫時套用，下次 "APP_NAME L" 啟動時將被還原。\n\n若要永久變更，請透過「進階」> 「編輯設定」開啟設定檔，並將 ""hide_tray"" 設為 ""true""。"
 	IDS_ALREADY_RUNNING APP_NAME L" 已經在執行了！在工具欄圖示點擊右鍵以存取。"
 	IDS_LANGUAGE_CHANGED L"設定檔中的語言覆蓋設定已變更。請重新啟動 " APP_NAME L" 以使變更套用。"
 	IDS_RESTART_REQUIRED APP_NAME L"最近已更新。請重新啟動 Windows 以開始使用最新版本。"

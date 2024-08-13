@@ -187,15 +187,24 @@ std::optional<bool> Window::on_current_desktop() const
 
 bool Window::is_user_window() const
 {
-	if (valid() && visible() && !cloaked() && ancestor(GA_ROOT) == m_WindowHandle && get(GW_OWNER) == Window::NullWindow)
+	if (valid())
 	{
-		const auto ex_style = get_long_ptr(GWL_EXSTYLE);
-		if (ex_style &&
-			(*ex_style & WS_EX_APPWINDOW || !(*ex_style & (WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE))) &&
-			prop(L"ITaskList_Deleted") == nullptr)
+		const auto ex_style = get_long_ptr(GWL_EXSTYLE).value_or(0);
+		const bool is_tool_window = (ex_style & WS_EX_TOOLWINDOW) == WS_EX_TOOLWINDOW;
+
+		// check if the window is visible. A window with WS_EX_TOOLWINDOW is considered not visible.
+		if (!is_tool_window && visible() && !cloaked())
 		{
-			// done last because it's expensive due to being reentrant
-			return on_current_desktop().value_or(false);
+			// check if the window is top-level.
+			if (ancestor(GA_ROOT) == m_WindowHandle)
+			{
+				const bool is_no_activate = (ex_style & WS_EX_NOACTIVATE) == WS_EX_NOACTIVATE;
+				const bool is_app_window = (ex_style & WS_EX_APPWINDOW) == WS_EX_APPWINDOW;
+
+				// check the window does not have WS_EX_NOACTIVATE (or if it does, it has WS_EX_APPWINDOW)
+				// then check if it's on the current virtual desktop (currently, a cloak check also catches these, but it's an implementation detail)
+				return (!is_no_activate || is_app_window) && on_current_desktop().value_or(false);
+			}
 		}
 	}
 

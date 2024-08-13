@@ -1,6 +1,7 @@
 #include "taskbarattributeworker.hpp"
 #include <functional>
 #include <member_thunk/member_thunk.hpp>
+#include <tlhelp32.h>
 
 #include "constants.hpp"
 #include "../localization.hpp"
@@ -1007,18 +1008,12 @@ catch (const winrt::hresult_error &err)
 void TaskbarAttributeWorker::InsertTaskbar(HMONITOR mon, Window window)
 {
 	TaskbarInfo taskbarInfo = { .TaskbarWindow = window };
-	if (m_IsWindows11)
+	if (m_TaskbarType == TaskbarType::Mixed)
 	{
-		if (win32::IsAtLeastBuild(22616)) // TODO: ignore explorer patcher classic taskbar
-		{
-			taskbarInfo.WorkerWWindow = window.find_child(L"WorkerW");
-		}
-		else
-		{
-			taskbarInfo.InnerXamlContent = window.find_child(L"Windows.UI.Composition.DesktopWindowContentBridge", L"DesktopWindowXamlSource");
-		}
+		taskbarInfo.WorkerWWindow = window.find_child(L"WorkerW"); // early 22621
+		taskbarInfo.InnerXamlContent = window.find_child(L"Windows.UI.Composition.DesktopWindowContentBridge", L"DesktopWindowXamlSource"); // 22000
 	}
-	else
+	else if (m_TaskbarType == TaskbarType::Classic)
 	{
 		taskbarInfo.PeekWindow = window.find_child(L"TrayNotifyWnd").find_child(L"TrayShowDesktopButtonWClass");
 	}
@@ -1026,13 +1021,16 @@ void TaskbarAttributeWorker::InsertTaskbar(HMONITOR mon, Window window)
 	m_NormalTaskbars.insert(window);
 	m_Taskbars.insert_or_assign(mon, MonitorInfo { taskbarInfo });
 
-	if (wil::unique_hhook hook { m_InjectExplorerHook(window) })
+	if (m_TaskbarType != TaskbarType::XAML)
 	{
-		m_Hooks.push_back(std::move(hook));
-	}
-	else
-	{
-		LastErrorHandle(spdlog::level::critical, L"Failed to set hook.");
+		if (wil::unique_hhook hook { m_InjectExplorerHook(window) })
+		{
+			m_Hooks.push_back(std::move(hook));
+		}
+		else
+		{
+			LastErrorHandle(spdlog::level::critical, L"Failed to set hook.");
+		}
 	}
 }
 
@@ -1057,6 +1055,18 @@ BOOL TaskbarAttributeWorker::MonitorEnumProc(HMONITOR hMonitor, HDC, LPRECT lprc
 	return true;
 }
 
+BOOL TaskbarAttributeWorker::WindowEnumProc(HWND hwnd, LPARAM lParam)
+{
+	Window window(hwnd);
+	if (window.classname() == L"Windows.UI.Composition.DesktopWindowContentBridge" && window.title() == L"DesktopWindowXamlSource")
+	{
+		auto islandsCount = reinterpret_cast<uint32_t*>(lParam);
+		++(*islandsCount);
+	}
+
+	return true;
+}
+
 HMONITOR TaskbarAttributeWorker::GetTaskbarMonitor(Window taskbar)
 {
 	MonitorEnumInfo info = { taskbar };
@@ -1070,6 +1080,62 @@ HMONITOR TaskbarAttributeWorker::GetTaskbarMonitor(Window taskbar)
 	}
 }
 
+TaskbarType TaskbarAttributeWorker::GetTaskbarType(Window taskbar)
+{
+	wil::unique_cotaskmem_string system32;
+	const HRESULT hr = SHGetKnownFolderPath(FOLDERID_System, KF_FLAG_DEFAULT, nullptr, system32.put());
+	if (FAILED(hr)) [[unlikely]]
+	{
+		HresultHandle(hr, spdlog::level::critical, L"Failed to get System32 path");
+	}
+
+	std::filesystem::path taskbarDll = system32.get();
+	taskbarDll /= L"Taskbar.dll";
+
+	bool hasTaskbarDll = false;
+	wil::unique_tool_help_snapshot snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, taskbar.process_id()));
+
+	MODULEENTRY32 me = { .dwSize = sizeof(me) };
+
+	if (!Module32First(snapshot.get(), &me))
+	{
+		LastErrorHandle(spdlog::level::critical, L"Failed to list Explorer modules.");
+	}
+
+	do
+	{
+		if (win32::IsSameFilename(me.szExePath, taskbarDll.native()))
+		{
+			hasTaskbarDll = true;
+			break;
+		}
+	} while (Module32Next(snapshot.get(), &me));
+
+	snapshot.reset();
+
+	if (hasTaskbarDll)
+	{
+		uint32_t islandsCount = 0;
+		EnumChildWindows(taskbar, WindowEnumProc, reinterpret_cast<LPARAM>(&islandsCount));
+		if (islandsCount == 2)
+		{
+			return TaskbarType::Mixed;
+		}
+		else if (islandsCount == 1)
+		{
+			return TaskbarType::XAML;
+		}
+		else
+		{
+			MessagePrint(spdlog::level::critical, L"Cannot determine taskbar type");
+		}
+	}
+	else
+	{
+		return TaskbarType::Classic;
+	}
+}
+
 TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hInstance, DynamicLoader &loader, const std::optional<std::filesystem::path> &storageFolder) :
 	MessageWindow(TTB_WORKERWINDOW, TTB_WORKERWINDOW, hInstance, WS_POPUP, WS_EX_NOREDIRECTIONBITMAP),
 	SetWindowCompositionAttribute(loader.SetWindowCompositionAttribute()),
@@ -1080,6 +1146,7 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hIns
 	m_disableAttributeRefreshReply(false),
 	m_ResettingState(false),
 	m_ResetStateReentered(false),
+	m_TaskbarType(TaskbarType::Unknown),
 	m_CurrentStartMonitor(nullptr),
 	m_CurrentSearchMonitor(nullptr),
 	m_Config(cfg),
@@ -1103,9 +1170,9 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hIns
 	m_SearchVisibilityChangeMessage(Window::RegisterMessage(WM_TTBSEARCHVISIBILITYCHANGE)),
 	m_ForceRefreshTaskbar(Window::RegisterMessage(WM_TTBFORCEREFRESHTASKBAR)),
 	m_LastExplorerPid(0),
-	m_HookDll(storageFolder, L"ExplorerHooks.dll"),
+	m_HookDll(storageFolder, m_Config.CopyDlls.value_or(true), L"ExplorerHooks.dll"),
 	m_InjectExplorerHook(m_HookDll.GetProc<PFN_INJECT_EXPLORER_HOOK>("InjectExplorerHook")),
-	m_TAPDll(storageFolder, L"ExplorerTAP.dll"),
+	m_TAPDll(storageFolder, m_Config.CopyDlls.value_or(true), L"ExplorerTAP.dll"),
 	m_InjectExplorerTAP(m_TAPDll.GetProc<PFN_INJECT_EXPLORER_TAP>("InjectExplorerTAP")),
 	m_IsWindows11(win32::IsAtLeastBuild(22000))
 {
@@ -1195,6 +1262,25 @@ void TaskbarAttributeWorker::DumpState()
 	std::format_to(std::back_inserter(buf), L"Current foreground window: {}", DumpWindow(m_ForegroundWindow));
 	MessagePrint(spdlog::level::off, buf);
 
+	switch (m_TaskbarType)
+	{
+	case TaskbarType::Unknown:
+		MessagePrint(spdlog::level::off, L"Current taskbar type: Unknown");
+		break;
+
+	case TaskbarType::Classic:
+		MessagePrint(spdlog::level::off, L"Current taskbar type: Classic");
+		break;
+
+	case TaskbarType::Mixed:
+		MessagePrint(spdlog::level::off, L"Current taskbar type: Mixed");
+		break;
+
+	case TaskbarType::XAML:
+		MessagePrint(spdlog::level::off, L"Current taskbar type: XAML");
+		break;
+	}
+
 	buf.clear();
 	std::format_to(std::back_inserter(buf), L"Worker handles attribute refresh requests from hooks: {}", !m_disableAttributeRefreshReply);
 	MessagePrint(spdlog::level::off, buf);
@@ -1260,15 +1346,9 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 
 			m_LastExplorerPid = pid;
 
-			InsertTaskbar(GetTaskbarMonitor(main_taskbar), main_taskbar);
+			m_TaskbarType = GetTaskbarType(main_taskbar);
 
-			// if we're on 22621, with a XAML Island present, but no WorkerW window, we're on the new taskbar
-			// 22000 doesn't have the new taskbar. On 22621 when you have the old taskbar, there is a WorkerW window.
-			// Because ExplorerPatcher unfortunately exists and can restore the Windows 10 taskbar,
-			// check for a XAML Island always to make sure we're not on the 10 taskbar.
-			if (win32::IsAtLeastBuild(22621) &&
-				main_taskbar.find_child(L"Windows.UI.Composition.DesktopWindowContentBridge") &&
-				!main_taskbar.find_child(L"WorkerW"))
+			if (m_TaskbarType == TaskbarType::XAML)
 			{
 				const HRESULT hr = m_InjectExplorerTAP(pid, IID_PPV_ARGS(m_TaskbarService.put()));
 				if (hr == HRESULT_FROM_WIN32(ERROR_PRODUCT_VERSION))
@@ -1283,6 +1363,8 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 
 				HresultVerify(m_TaskbarService->RestoreAllTaskbarsToDefaultWhenProcessDies(GetCurrentProcessId()), spdlog::level::warn, L"Couldn't configure TAP to restore taskbar appearance once " APP_NAME L" dies.");
 			}
+
+			InsertTaskbar(GetTaskbarMonitor(main_taskbar), main_taskbar);
 		}
 
 		for (const Window secondtaskbar : Window::FindEnum(SECONDARY_TASKBAR))

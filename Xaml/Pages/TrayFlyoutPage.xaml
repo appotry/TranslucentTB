@@ -22,8 +22,8 @@
                 <MenuFlyoutSubItem.Icon>
                     <PathIcon Data="{StaticResource DesktopIcon}" Width="16" Height="16" />
                 </MenuFlyoutSubItem.Icon>
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -64,8 +64,8 @@
                     <FontIcon Glyph="&#xE737;" />
                 </MenuFlyoutSubItem.Icon>
                 <ToggleMenuFlyoutItem Tag="Enabled" x:Uid="TrayFlyoutPage_Enabled" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -106,8 +106,8 @@
                     <FontIcon Glyph="&#xE740;" />
                 </MenuFlyoutSubItem.Icon>
                 <ToggleMenuFlyoutItem Tag="Enabled" x:Uid="TrayFlyoutPage_Enabled" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -151,8 +151,8 @@
                     <FontIcon FontFamily="HoloLens MDL2 Assets" Glyph="&#xE782;" />
                 </windows11NotPresent:MenuFlyoutSubItem.Icon>
                 <ToggleMenuFlyoutItem Tag="Enabled" x:Uid="TrayFlyoutPage_Enabled" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -193,8 +193,8 @@
                     <FontIcon Glyph="&#xE721;" />
                 </MenuFlyoutSubItem.Icon>
                 <ToggleMenuFlyoutItem Tag="Enabled" x:Uid="TrayFlyoutPage_Enabled" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -235,8 +235,8 @@
                     <FontIcon Glyph="&#xE7C4;" />
                 </MenuFlyoutSubItem.Icon>
                 <ToggleMenuFlyoutItem Tag="Enabled" x:Uid="TrayFlyoutPage_Enabled" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -277,8 +277,8 @@
                     <FontIcon Glyph="&#xE8BE;" />
                 </MenuFlyoutSubItem.Icon>
                 <ToggleMenuFlyoutItem Tag="Enabled" x:Uid="TrayFlyoutPage_Enabled" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
-                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11Present:Visibility="Collapsed" />
-                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" windows11NotPresent:Visibility="Collapsed" />
+                <ToggleMenuFlyoutItem Tag="ShowPeek" x:Uid="TrayFlyoutPage_PeekButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
+                <ToggleMenuFlyoutItem Tag="ShowLine" x:Uid="TrayFlyoutPage_LineButton" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="AppearanceClicked" />
                 <MenuFlyoutItem Tag="Color" x:Uid="TrayFlyoutPage_AccentColor" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ColorClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE790;" />
@@ -376,11 +376,6 @@
                 <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_ResetSettings" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="ResetSettingsClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE777;" />
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_HideTrayIcon" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="HideTrayClicked">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xED1A;" />
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
                 <ToggleMenuFlyoutItem x:Name="DisableSavingSettings" x:Uid="TrayFlyoutPage_Advanced_DisableHotSettings" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="DisableSavingSettingsClicked" />

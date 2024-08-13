@@ -32,6 +32,13 @@
 #include "../ProgramLog/error/win32.hpp"
 #include "../loadabledll.hpp"
 
+enum class TaskbarType {
+	Unknown,
+	Classic, // Windows 10
+	Mixed,   // Windows 11 22000 and early 22621
+	XAML     // Windows 11 22621+
+};
+
 class TaskbarAttributeWorker final : public MessageWindow {
 private:
 	class AttributeRefresher;
@@ -81,6 +88,7 @@ private:
 	HMONITOR m_CurrentStartMonitor;
 	HMONITOR m_CurrentSearchMonitor;
 	Window m_ForegroundWindow;
+	TaskbarType m_TaskbarType;
 	std::unordered_map<HMONITOR, MonitorInfo> m_Taskbars;
 	std::unordered_set<Window> m_NormalTaskbars;
 	const Config &m_Config;
@@ -200,7 +208,9 @@ private:
 	bool IsSearchOpened() const;
 	void InsertTaskbar(HMONITOR mon, Window window);
 	static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
+	static BOOL CALLBACK WindowEnumProc(HWND hwnd, LPARAM lParam);
 	static HMONITOR GetTaskbarMonitor(Window taskbar);
+	static TaskbarType GetTaskbarType(Window taskbar);
 
 	inline TaskbarAppearance WithPreview(txmp::TaskbarState state, const TaskbarAppearance &appearance) const
 	{
@@ -262,6 +272,11 @@ public:
 
 	void DumpState();
 	void ResetState(bool manual = false);
+
+	TaskbarType GetType() noexcept
+	{
+		return m_TaskbarType;
+	}
 
 	~TaskbarAttributeWorker() noexcept(false);
 };

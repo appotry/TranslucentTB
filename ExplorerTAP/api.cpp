@@ -1,14 +1,13 @@
 #include "api.hpp"
+#include <WinBase.h>
+#include <detours/detours.h>
 #include <libloaderapi.h>
 #include <wil/resource.h>
 
 #include "constants.hpp"
 #include "tapsite.hpp"
-#include "win32.hpp"
 #include "taskbarappearanceservice.hpp"
-#include "util/string_macros.hpp"
-
-using PFN_INITIALIZE_XAML_DIAGNOSTICS_EX = decltype(&InitializeXamlDiagnosticsEx);
+#include "win32.hpp"
 
 HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv) try
 {
@@ -21,54 +20,52 @@ HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv) try
 	{
 		const auto event = TAPSite::GetReadyEvent();
 
+		wil::unique_process_handle proc(OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, false, pid));
+		if (!proc) [[unlikely]]
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		if (!DetourFindRemotePayload(proc.get(), EXPLORER_PAYLOAD, nullptr))
+		{
+			static constexpr uint32_t content = 0xDEADBEEF;
+			if (!DetourCopyPayloadToProcess(proc.get(), EXPLORER_PAYLOAD, &content, sizeof(content))) [[unlikely]]
+			{
+				return HRESULT_FROM_WIN32(GetLastError());
+			}
+		}
+
 		const auto [location, hr2] = win32::GetDllLocation(wil::GetModuleInstanceHandle());
 		if (FAILED(hr2)) [[unlikely]]
 		{
 			return hr2;
 		}
 
-		const wil::unique_hmodule wux(LoadLibraryEx(L"Windows.UI.Xaml.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32));
-		if (!wux) [[unlikely]]
+		const auto size = sizeof(wchar_t) * (location.native().size() + 1); // null terminator
+		void* ptr = VirtualAllocEx(proc.get(), nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		if (!ptr)
 		{
 			return HRESULT_FROM_WIN32(GetLastError());
 		}
 
-		const auto ixde = reinterpret_cast<PFN_INITIALIZE_XAML_DIAGNOSTICS_EX>(GetProcAddress(wux.get(), UTIL_STRINGIFY_UTF8(InitializeXamlDiagnosticsEx)));
-		if (!ixde) [[unlikely]]
+		SIZE_T written = 0;
+		if (!WriteProcessMemory(proc.get(), ptr, location.c_str(), size, &written))
 		{
 			return HRESULT_FROM_WIN32(GetLastError());
 		}
 
-		uint8_t attempts = 0;
-		do
+		if (written != size)
 		{
-			// We need this to exist because XAML Diagnostics can only be initialized once per thread
-			// future calls simply return S_OK without doing anything.
-			// But we need to be able to initialize it again if Explorer restarts. So we create a thread
-			// that is discardable to do the initialization from.
-			std::thread([&hr, ixde, pid, &location]
-			{
-				hr = ixde(L"VisualDiagConnection1", pid, nullptr, location.c_str(), CLSID_TAPSite, nullptr);
-			}).join();
-
-			if (SUCCEEDED(hr))
-			{
-				break;
-			}
-			else
-			{
-				++attempts;
-				Sleep(500);
-			}
-		} while (FAILED(hr) && attempts < 60);
-		// 60 * 500ms = 30s
-
-		if (FAILED(hr)) [[unlikely]]
-		{
-			return hr;
+			return HRESULT_FROM_WIN32(ERROR_PARTIAL_COPY);
 		}
 
-		static constexpr DWORD TIMEOUT =
+		wil::unique_handle handle(CreateRemoteThread(proc.get(), nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&LoadLibrary), ptr, 0, nullptr));
+		if (!handle)
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		static constexpr DWORD LOAD_TIMEOUT =
 #ifdef _DEBUG
 			// do not timeout on debug builds, to allow debugging the DLL while it's loading in explorer
 			INFINITE;
@@ -76,7 +73,31 @@ HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv) try
 			5000;
 #endif
 
-		if (!event.wait(TIMEOUT)) [[unlikely]]
+		if (WaitForSingleObject(handle.get(), LOAD_TIMEOUT) != WAIT_OBJECT_0)
+		{
+			return HRESULT_FROM_WIN32(WAIT_TIMEOUT);
+		}
+
+		DWORD exitCode = 0;
+		if (!GetExitCodeThread(handle.get(), &exitCode))
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		if (!exitCode)
+		{
+			return E_FAIL;
+		}
+
+		static constexpr DWORD READY_TIMEOUT =
+#ifdef _DEBUG
+			// do not timeout on debug builds, to allow debugging the DLL while it's loading in explorer
+			INFINITE;
+#else
+			35000;
+#endif
+
+		if (!event.wait(READY_TIMEOUT)) [[unlikely]]
 		{
 			return HRESULT_FROM_WIN32(WAIT_TIMEOUT);
 		}

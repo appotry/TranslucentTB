@@ -16,6 +16,13 @@ LANGUAGE LANG_INVARIANT, SUBLANG_NEUTRAL
 // Icons
 //
 
-IDI_MAINICON            ICON                    "TranslucentTB.ico"
+#if defined(BUILD_TYPE) && BUILD_TYPE == 0
+IDI_MAINICON            ICON                    "TranslucentTB.release.ico"
+#elif defined(BUILD_TYPE) && BUILD_TYPE == 1
+IDI_MAINICON            ICON                    "TranslucentTB.canary.ico"
+#else
+IDI_MAINICON            ICON                    "TranslucentTB.dev.ico"
+#endif
+
 IDI_TRAYWHITEICON       ICON                    "TranslucentTB.white.ico"
 IDI_TRAYBLACKICON       ICON                    "TranslucentTB.black.ico"
