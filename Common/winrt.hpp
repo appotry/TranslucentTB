@@ -9,7 +9,11 @@ namespace winrt {
 	namespace TranslucentTB::Xaml::Models::Primitives {}
 	namespace Windows {
 		namespace ApplicationModel {}
-		namespace Foundation::Collections {}
+		namespace Foundation {
+			namespace Collections {}
+			namespace Numerics {}
+		}
+		namespace Graphics::Effects {}
 		namespace UI::Xaml {
 			namespace Controls {}
 			namespace Hosting {}
@@ -25,6 +29,8 @@ namespace txmp = winrt::TranslucentTB::Xaml::Models::Primitives;
 namespace wam = winrt::Windows::ApplicationModel;
 namespace wf = winrt::Windows::Foundation;
 namespace wfc = wf::Collections;
+namespace wfn = wf::Numerics;
+namespace wge = winrt::Windows::Graphics::Effects;
 namespace wux = winrt::Windows::UI::Xaml;
 namespace wuxc = wux::Controls;
 namespace wuxh = wux::Hosting;

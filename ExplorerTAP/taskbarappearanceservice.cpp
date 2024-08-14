@@ -6,8 +6,7 @@
 #include "constants.hpp"
 #include "util/color.hpp"
 
-#include "XamlCompositionBrush.h"
-#include "GaussianBlurEffect.h"
+#include "XamlBlurBrush.h"
 
 extern "C"
 {
@@ -36,64 +35,61 @@ HRESULT TaskbarAppearanceService::GetVersion(DWORD* apiVersion) noexcept
 
 HRESULT TaskbarAppearanceService::SetTaskbarAppearance(HWND taskbar, TaskbarBrush brush, UINT color) try
 {
-	for (const auto& [handle, info] : m_Taskbars)
+	if (const auto info = GetTaskbarInfo(taskbar))
 	{
-		if (GetAncestor(info.window, GA_PARENT) == taskbar)
+		if (info->background.control && info->background.originalFill)
 		{
-			if (info.background.control && info.background.originalFill)
+			const winrt::Windows::UI::Color tint = Util::Color::FromABGR(color);
+			wux::Media::Brush newBrush = nullptr;
+			if (brush == Acrylic)
 			{
-				const winrt::Windows::UI::Color tint = Util::Color::FromABGR(color);
-				wux::Media::Brush newBrush = nullptr;
-				if (brush == Acrylic)
-				{
-					wux::Media::AcrylicBrush acrylicBrush;
-					// on the taskbar, using Backdrop instead of HostBackdrop
-					// makes the effect still show what's behind, but also not disable itself
-					// when the window isn't active
-					// this is because it sources what's behind the XAML, and the taskbar window
-					// is transparent so what's behind is actually the content behind the window
-					// (it doesn't need to poke a hole like HostBackdrop)
-					acrylicBrush.BackgroundSource(wux::Media::AcrylicBackgroundSource::Backdrop);
-					acrylicBrush.TintColor(tint);
+				wux::Media::AcrylicBrush acrylicBrush;
+				// on the taskbar, using Backdrop instead of HostBackdrop
+				// makes the effect still show what's behind, but also not disable itself
+				// when the window isn't active
+				// this is because it sources what's behind the XAML, and the taskbar window
+				// is transparent so what's behind is actually the content behind the window
+				// (it doesn't need to poke a hole like HostBackdrop)
+				acrylicBrush.BackgroundSource(wux::Media::AcrylicBackgroundSource::Backdrop);
+				acrylicBrush.TintColor(tint);
 
-					newBrush = std::move(acrylicBrush);
-				}
-				else if (brush == SolidColor)
-				{
-					wux::Media::SolidColorBrush solidBrush;
-					solidBrush.Color(tint);
+				newBrush = std::move(acrylicBrush);
+			}
+			else if (brush == SolidColor)
+			{
+				wux::Media::SolidColorBrush solidBrush;
+				solidBrush.Color(tint);
 
-					newBrush = std::move(solidBrush);
-				}
-				else if (brush == Blur)
-				{
-					auto compositor = wuxh::ElementCompositionPreview::GetElementVisual(info.background.control).Compositor();
-					auto backdropBrush = compositor.CreateBackdropBrush();
-					auto blurEffect = winrt::make_self<GaussianBlurEffect>();
-					blurEffect->Source = wuc::CompositionEffectSourceParameter(L"blurSource");
-					blurEffect->BlurAmount = (float)color;
-					auto factory = compositor.CreateEffectFactory(blurEffect.as<wge::IGraphicsEffect>());
-					auto blurBrush = factory.CreateBrush();
-					blurBrush.SetSourceParameter(L"blurSource", backdropBrush);
-
-					wux::Media::XamlCompositionBrushBase compBrush = winrt::make<XamlCompositionBrush>(blurBrush);
-					newBrush = std::move(compBrush);
-				}
-
-				info.background.control.Fill(newBrush);
-
-				// TODO: this is a hack, we need to find a better way to handle this
-				// As it's not a proper way to do it and doesn't work when the taskbar is recreated (e.g. in cases where the taskbar is automatically hidden)
-				// It probably doesn't work on multi-monitor scenarios as well
-				if (brush == Blur && !m_wallpaperRefreshed)
-				{
-					// Refresh the desktop wallpaper so that DWM invalidates the rect behind the taskbar otherwise we will have a black background behind the blur
-					SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
-					m_wallpaperRefreshed = true;
-				}
+				newBrush = std::move(solidBrush);
 			}
 
-			break;
+			info->background.control.Fill(newBrush);
+		}
+	}
+
+	return S_OK;
+}
+catch (...)
+{
+	return winrt::to_hresult();
+}
+
+HRESULT TaskbarAppearanceService::SetTaskbarBlur(HWND taskbar, UINT color, FLOAT blurAmount) try
+{
+	if (const auto info = GetTaskbarInfo(taskbar))
+	{
+		if (info->background.control && info->background.originalFill)
+		{
+			const winrt::Windows::UI::Color tint = Util::Color::FromABGR(color);
+			const wfn::float4 tintHdr = {
+				tint.R / 255.0f,
+				tint.G / 255.0f,
+				tint.B / 255.0f,
+				tint.A / 255.0f
+			};
+
+			auto compositor = wuxh::ElementCompositionPreview::GetElementVisual(info->background.control).Compositor();
+			info->background.control.Fill(winrt::make<XamlBlurBrush>(std::move(compositor), blurAmount, tintHdr));
 		}
 	}
 
@@ -272,6 +268,19 @@ winrt::fire_and_forget TaskbarAppearanceService::OnProcessDied()
 	{
 		self->RestoreAllTaskbarsToDefault();
 	}
+}
+
+std::optional<TaskbarAppearanceService::TaskbarInfo> TaskbarAppearanceService::GetTaskbarInfo(HWND taskbar)
+{
+	for (const auto& [handle, info] : m_Taskbars)
+	{
+		if (GetAncestor(info.window, GA_PARENT) == taskbar)
+		{
+			return info;
+		}
+	}
+
+	return std::nullopt;
 }
 
 void TaskbarAppearanceService::RestoreDefaultControlFill(const ControlInfo<wux::Shapes::Shape> &info)

@@ -16,7 +16,6 @@
 #include <winrt/Windows.Internal.Shell.Experience.h> // this is evil >:3
 #include <winrt/WindowsUdk.UI.Shell.h> // this is less evil
 
-#include "config/config.hpp"
 #include "config/taskbarappearance.hpp"
 #include "../dynamicloader.hpp"
 #include "../ExplorerHooks/api.hpp"
@@ -31,6 +30,7 @@
 #include "wilx.hpp"
 #include "../ProgramLog/error/win32.hpp"
 #include "../loadabledll.hpp"
+#include "../managers/configmanager.hpp"
 
 enum class TaskbarType {
 	Unknown,
@@ -91,7 +91,7 @@ private:
 	TaskbarType m_TaskbarType;
 	std::unordered_map<HMONITOR, MonitorInfo> m_Taskbars;
 	std::unordered_set<Window> m_NormalTaskbars;
-	const Config &m_Config;
+	ConfigManager &m_ConfigManager;
 
 	// Hooks
 	member_thunk::page m_ThunkPage;
@@ -139,8 +139,6 @@ private:
 	std::array<std::optional<Util::Color>, 7> m_ColorPreviews;
 
 	// Hook DLL
-	LoadableDll m_HookDll;
-	PFN_INJECT_EXPLORER_HOOK m_InjectExplorerHook;
 	std::vector<wil::unique_hhook> m_Hooks;
 
 	// TAP DLL
@@ -150,6 +148,7 @@ private:
 
 	// Other
 	bool m_IsWindows11;
+	bool m_IsBlurAccentStateSupported;
 
 	// Type aliases
 	using taskbar_iterator = decltype(m_Taskbars)::iterator;
@@ -217,7 +216,7 @@ private:
 		const auto &preview = m_ColorPreviews.at(static_cast<std::size_t>(state));
 		if (preview)
 		{
-			return { appearance.Accent, *preview, appearance.ShowPeek, appearance.ShowLine };
+			return { appearance.Accent, *preview, appearance.ShowPeek, appearance.ShowLine, appearance.BlurRadius };
 		}
 		else
 		{
@@ -251,7 +250,7 @@ private:
 	}
 
 public:
-	TaskbarAttributeWorker(const Config &cfg, HINSTANCE hInstance, DynamicLoader &loader, const std::optional<std::filesystem::path> &storageFolder);
+	TaskbarAttributeWorker(ConfigManager &cfgManager, HINSTANCE hInstance, DynamicLoader &loader, const std::optional<std::filesystem::path> &storageFolder);
 
 	inline void ConfigurationChanged()
 	{
@@ -276,6 +275,11 @@ public:
 	TaskbarType GetType() noexcept
 	{
 		return m_TaskbarType;
+	}
+
+	bool IsBlurAccentStateSupported() noexcept
+	{
+		return m_IsBlurAccentStateSupported;
 	}
 
 	~TaskbarAttributeWorker() noexcept(false);

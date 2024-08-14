@@ -49,7 +49,9 @@
   <ItemGroup>
     <ClCompile Include="api.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="GaussianBlurEffect.cpp" />
+    <ClCompile Include="effects\CompositeEffect.cpp" />
+    <ClCompile Include="effects\FloodEffect.cpp" />
+    <ClCompile Include="effects\GaussianBlurEffect.cpp" />
     <ClCompile Include="Generated Files\$(Platform)\dlldata.c" />
     <ClCompile Include="Generated Files\$(Platform)\ExplorerTAP_i.c" />
     <ClCompile Include="Generated Files\$(Platform)\ITaskbarAppearanceService_i.c" />
@@ -60,7 +62,7 @@
     <ClCompile Include="tapsite.cpp" />
     <ClCompile Include="taskbarappearanceservice.cpp" />
     <ClCompile Include="visualtreewatcher.cpp" />
-    <ClCompile Include="XamlCompositionBrush.cpp" />
+    <ClCompile Include="XamlBlurBrush.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ExplorerTAP.def" />
@@ -69,7 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api.hpp" />
-    <ClInclude Include="GaussianBlurEffect.h" />
+    <ClInclude Include="effects\CompositeEffect.h" />
+    <ClInclude Include="effects\FloodEffect.h" />
+    <ClInclude Include="effects\GaussianBlurEffect.h" />
     <ClInclude Include="Generated Files\$(Platform)\ExplorerTAP.h" />
     <ClInclude Include="Generated Files\$(Platform)\ITaskbarAppearanceService.h" />
     <ClInclude Include="Generated Files\$(Platform)\IVersionedApi.h" />
@@ -77,7 +81,7 @@
     <ClInclude Include="tapsite.hpp" />
     <ClInclude Include="taskbarappearanceservice.hpp" />
     <ClInclude Include="visualtreewatcher.hpp" />
-    <ClInclude Include="XamlCompositionBrush.h" />
+    <ClInclude Include="XamlBlurBrush.h" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="ExplorerTAP.idl" />

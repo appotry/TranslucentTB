@@ -56,7 +56,9 @@ void MainAppWindow::RefreshMenu()
 	const auto &trayPage = page();
 	const auto &settings = m_App.GetConfigManager().GetConfig();
 
-	trayPage.SetTaskbarType(m_App.GetWorker().GetType() == TaskbarType::Classic ? txmp::TaskbarType::Classic : txmp::TaskbarType::XAML);
+	const auto type = m_App.GetWorker().GetType();
+	trayPage.SetTaskbarType(type == TaskbarType::Classic ? txmp::TaskbarType::Classic : txmp::TaskbarType::XAML);
+	trayPage.IsBlurSupported(type == TaskbarType::XAML ? true : m_App.GetWorker().IsBlurAccentStateSupported());
 
 	trayPage.SetTaskbarSettings(txmp::TaskbarState::Desktop, settings.DesktopAppearance);
 	trayPage.SetTaskbarSettings(txmp::TaskbarState::VisibleWindow, txmp::OptionalTaskbarAppearance(settings.VisibleWindowAppearance));
