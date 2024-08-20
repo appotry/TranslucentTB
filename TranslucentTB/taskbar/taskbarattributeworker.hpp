@@ -139,6 +139,8 @@ private:
 	std::array<std::optional<Util::Color>, 7> m_ColorPreviews;
 
 	// Hook DLL
+	LoadableDll m_HookDll;
+	PFN_INJECT_EXPLORER_HOOK m_InjectExplorerHook;
 	std::vector<wil::unique_hhook> m_Hooks;
 
 	// TAP DLL
