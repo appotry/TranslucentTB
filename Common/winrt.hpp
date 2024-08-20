@@ -14,11 +14,13 @@ namespace winrt {
 			namespace Numerics {}
 		}
 		namespace Graphics::Effects {}
-		namespace UI::Xaml {
-			namespace Controls {}
-			namespace Hosting {}
+		namespace UI {
+			namespace Composition {}
+			namespace Xaml {
+				namespace Controls {}
+				namespace Hosting {}
+			}
 		}
-		namespace UI::Composition {}
 	}
 }
 
@@ -31,7 +33,7 @@ namespace wf = winrt::Windows::Foundation;
 namespace wfc = wf::Collections;
 namespace wfn = wf::Numerics;
 namespace wge = winrt::Windows::Graphics::Effects;
+namespace wuc = winrt::Windows::UI::Composition;
 namespace wux = winrt::Windows::UI::Xaml;
 namespace wuxc = wux::Controls;
 namespace wuxh = wux::Hosting;
-namespace wuc = winrt::Windows::UI::Composition;
