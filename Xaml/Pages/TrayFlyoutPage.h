@@ -13,11 +13,6 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 	{
 		TrayFlyoutPage(bool hasPackageIdentity);
 
-		bool IsBlurSupported() noexcept
-		{
-			return m_BlurSupported;
-		}
-
 		bool HasPackageIdentity() noexcept
 		{
 			return m_HasPackageIdentity;
@@ -53,6 +48,7 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 		void SetStartupState(const wf::IReference<Windows::ApplicationModel::StartupTaskState> &state);
 
 		DECL_PROPERTY_CHANGED_FUNCS(txmp::LogSinkState, SinkState, m_SinkState);
+		DECL_PROPERTY_CHANGED_FUNCS(bool, IsBlurSupported, m_BlurSupported);
 
 		void AppearanceClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
 		void ColorClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);

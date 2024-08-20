@@ -5,6 +5,7 @@ import "TaskbarBrush.idl";
 interface ITaskbarAppearanceService : IUnknown
 {
 	HRESULT SetTaskbarAppearance([in] HWND taskbar, [in] enum TaskbarBrush brush, [in] UINT color);
+	HRESULT SetTaskbarBlur([in] HWND taskbar, [in] UINT color, [in] FLOAT blurAmount);
 	HRESULT ReturnTaskbarToDefaultAppearance([in] HWND taskbar);
 
 	HRESULT SetTaskbarBorderVisibility([in] HWND taskbar, [in] BOOL visible);

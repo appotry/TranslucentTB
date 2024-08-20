@@ -73,7 +73,7 @@ void Application::CreateWelcomePage()
 Application::Application(HINSTANCE hInst, std::optional<std::filesystem::path> storageFolder, bool fileExists) :
 	m_Config(storageFolder, fileExists, ConfigurationChanged, this),
 	m_DispatcherController(UWP::CreateDispatcherController()),
-	m_Worker(m_Config.GetConfig(), hInst, m_Loader, storageFolder),
+	m_Worker(m_Config, hInst, m_Loader, storageFolder),
 	m_UwpCRTDep(
 		hInst,
 		L"Microsoft.VCLibs.140.00_8wekyb3d8bbwe",

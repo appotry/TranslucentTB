@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <unordered_map>
 #include <xamlOM.h>
 #include "winrt.hpp"
@@ -6,6 +7,7 @@
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.Xaml.Shapes.h>
+#include <winrt/Windows.UI.Xaml.Hosting.h>
 #include "redefgetcurrenttime.h"
 #include <wil/resource.h>
 
@@ -26,6 +28,7 @@ public:
 	HRESULT STDMETHODCALLTYPE GetVersion(DWORD* apiVersion) noexcept override;
 
 	HRESULT STDMETHODCALLTYPE SetTaskbarAppearance(HWND taskbar, TaskbarBrush brush, UINT color) override;
+	HRESULT STDMETHODCALLTYPE SetTaskbarBlur(HWND taskbar, UINT color, FLOAT blurAmount) override;
 	HRESULT STDMETHODCALLTYPE ReturnTaskbarToDefaultAppearance(HWND taskbar) override;
 
 	HRESULT STDMETHODCALLTYPE SetTaskbarBorderVisibility(HWND taskbar, BOOL visible) override;
@@ -58,6 +61,7 @@ private:
 	};
 
 	winrt::fire_and_forget OnProcessDied();
+	std::optional<TaskbarInfo> GetTaskbarInfo(HWND taskbar);
 
 	static void RestoreDefaultControlFill(const ControlInfo<wux::Shapes::Shape> &info);
 	static void NTAPI ProcessWaitCallback(void *parameter, BOOLEAN timedOut);

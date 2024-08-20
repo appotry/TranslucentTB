@@ -91,6 +91,13 @@ namespace rjh {
 	}
 
 	template<class Writer>
+	inline void Serialize(Writer& writer, float value, std::wstring_view key)
+	{
+		WriteKey(writer, key);
+		writer.Double(value);
+	}
+
+	template<class Writer>
 	inline void Serialize(Writer &writer, std::wstring_view value, std::wstring_view key)
 	{
 		WriteKey(writer, key);
@@ -133,6 +140,13 @@ namespace rjh {
 		EnsureType(rj::Type::kFalseType, obj.GetType(), key);
 
 		member = obj.GetBool();
+	}
+
+	inline void Deserialize(const value_t& obj, float& member, std::wstring_view key)
+	{
+		EnsureType(rj::Type::kNumberType, obj.GetType(), key);
+
+		member = obj.GetFloat();
 	}
 
 	template<typename T, std::size_t size>

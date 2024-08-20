@@ -22,45 +22,19 @@
 #include "../win32.hpp"
 
 struct TaskbarAppearance {
-	inline static bool IsBlurSupported()
-	{
-		static const bool isBlurSupported = []
-		{
-			if (win32::IsExactBuild(22000))
-			{
-				// Windows 11 RTM. sometimes very laggy at release, fixed in KB5006746 (22000.282)
-				if (const auto [version, hr] = win32::GetWindowsBuild(); SUCCEEDED(hr))
-				{
-					return version.Revision >= 282;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else
-			{
-				// always works in Windows 10, but broken in Windows 11 besides RTM with KB5006746.
-				// since we check IsExactBuild above, using an inverted IsAtLeastBuild here 
-				// makes sure we return false for future versions of Windows 11 as well.
-				return !win32::IsAtLeastBuild(22000);
-			}
-		}();
-
-		return isBlurSupported;
-	}
-
 	ACCENT_STATE Accent = ACCENT_NORMAL;
 	Util::Color Color = { 0, 0, 0, 0 };
 	bool ShowPeek = true;
 	bool ShowLine = true;
+	float BlurRadius = 9.0f;
 
 	constexpr TaskbarAppearance() noexcept = default;
-	constexpr TaskbarAppearance(ACCENT_STATE accent, Util::Color color, bool showPeek, bool showLine) noexcept :
+	constexpr TaskbarAppearance(ACCENT_STATE accent, Util::Color color, bool showPeek, bool showLine, float blurRadius) noexcept :
 		Accent(accent),
 		Color(color),
 		ShowPeek(showPeek),
-		ShowLine(showLine)
+		ShowLine(showLine),
+		BlurRadius(blurRadius)
 	{ }
 
 #ifdef HAS_RAPIDJSON
@@ -71,6 +45,7 @@ struct TaskbarAppearance {
 		rjh::Serialize(writer, Color.ToString(), COLOR_KEY);
 		rjh::Serialize(writer, ShowPeek, SHOW_PEEK_KEY);
 		rjh::Serialize(writer, ShowLine, SHOW_LINE_KEY);
+		rjh::Serialize(writer, BlurRadius, RADIUS_KEY);
 	}
 
 	void Deserialize(const rjh::value_t &obj, void (*unknownKeyCallback)(std::wstring_view))
@@ -91,12 +66,6 @@ protected:
 		if (key == ACCENT_KEY)
 		{
 			rjh::Deserialize(val, Accent, key, ACCENT_MAP);
-
-			// when blur is broken upgrade people to acrylic
-			if (Accent == ACCENT_ENABLE_BLURBEHIND && !IsBlurSupported())
-			{
-				Accent = ACCENT_ENABLE_ACRYLICBLURBEHIND;
-			}
 		}
 		else if (key == COLOR_KEY)
 		{
@@ -122,6 +91,16 @@ protected:
 		{
 			rjh::Deserialize(val, ShowLine, key);
 		}
+		else if (key == RADIUS_KEY)
+		{
+			rjh::Deserialize(val, BlurRadius, key);
+
+			// internal Direct2D limitation
+			if (BlurRadius > 750)
+			{
+				BlurRadius = 750;
+			}
+		}
 		else if (unknownKeyCallback)
 		{
 			unknownKeyCallback(key);
@@ -141,6 +120,7 @@ private:
 	static constexpr std::wstring_view COLOR_KEY = L"color";
 	static constexpr std::wstring_view SHOW_PEEK_KEY = L"show_peek";
 	static constexpr std::wstring_view SHOW_LINE_KEY = L"show_line";
+	static constexpr std::wstring_view RADIUS_KEY = L"blur_radius";
 #endif
 
 #ifdef HAS_WINRT_CONFIG
@@ -149,12 +129,13 @@ public:
 		Accent(static_cast<ACCENT_STATE>(winrtObj.Accent())),
 		Color(winrtObj.Color()),
 		ShowPeek(winrtObj.ShowPeek()),
-		ShowLine(winrtObj.ShowLine())
+		ShowLine(winrtObj.ShowLine()),
+		BlurRadius(winrtObj.BlurRadius())
 	{ }
 
 	operator txmp::TaskbarAppearance() const
 	{
-		return { static_cast<txmp::AccentState>(Accent), Color, ShowPeek, ShowLine };
+		return { static_cast<txmp::AccentState>(Accent), Color, ShowPeek, ShowLine, BlurRadius };
 	}
 #endif
 };

@@ -354,20 +354,22 @@ LRESULT TaskbarAttributeWorker::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM 
 
 TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) const
 {
-	if (m_Config.BatterySaverAppearance.Enabled && m_PowerSaver)
+	const auto& config = m_ConfigManager.GetConfig();
+
+	if (config.BatterySaverAppearance.Enabled && m_PowerSaver)
 	{
-		return WithPreview(txmp::TaskbarState::BatterySaver, m_Config.BatterySaverAppearance);
+		return WithPreview(txmp::TaskbarState::BatterySaver, config.BatterySaverAppearance);
 	}
 
-	if (m_Config.TaskViewOpenedAppearance.Enabled && m_TaskViewActive)
+	if (config.TaskViewOpenedAppearance.Enabled && m_TaskViewActive)
 	{
-		return WithPreview(txmp::TaskbarState::TaskViewOpened, m_Config.TaskViewOpenedAppearance);
+		return WithPreview(txmp::TaskbarState::TaskViewOpened, config.TaskViewOpenedAppearance);
 	}
 
 	// Task View is ignored by peek, so shall we
 	if (m_PeekActive)
 	{
-		return WithPreview(txmp::TaskbarState::Desktop, m_Config.DesktopAppearance);
+		return WithPreview(txmp::TaskbarState::Desktop, config.DesktopAppearance);
 	}
 
 	// on windows 11, search is considered open when start is, so we need to check for start first.
@@ -384,28 +386,28 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 		startOpened = m_CurrentStartMonitor == taskbar->first;
 	}
 
-	if (m_Config.StartOpenedAppearance.Enabled && startOpened)
+	if (config.StartOpenedAppearance.Enabled && startOpened)
 	{
-		return WithPreview(txmp::TaskbarState::StartOpened, m_Config.StartOpenedAppearance);
+		return WithPreview(txmp::TaskbarState::StartOpened, config.StartOpenedAppearance);
 	}
 
-	if (m_Config.SearchOpenedAppearance.Enabled && !startOpened && m_CurrentSearchMonitor == taskbar->first)
+	if (config.SearchOpenedAppearance.Enabled && !startOpened && m_CurrentSearchMonitor == taskbar->first)
 	{
-		return WithPreview(txmp::TaskbarState::SearchOpened, m_Config.SearchOpenedAppearance);
+		return WithPreview(txmp::TaskbarState::SearchOpened, config.SearchOpenedAppearance);
 	}
 
 	auto &maximisedWindows = taskbar->second.MaximisedWindows;
 	const bool hasMaximizedWindows = SetContainsValidWindows(maximisedWindows);
-	if (m_Config.MaximisedWindowAppearance.Enabled && hasMaximizedWindows)
+	if (config.MaximisedWindowAppearance.Enabled && hasMaximizedWindows)
 	{
-		if (m_Config.MaximisedWindowAppearance.HasRules())
+		if (config.MaximisedWindowAppearance.HasRules())
 		{
 			for (const Window wnd : Window::DesktopWindow().get_ordered_childrens())
 			{
 				// find the highest maximized window in the z-order.
 				if (maximisedWindows.contains(wnd))
 				{
-					if (const auto rule = m_Config.MaximisedWindowAppearance.FindRule(wnd))
+					if (const auto rule = config.MaximisedWindowAppearance.FindRule(wnd))
 					{
 						// if it has a rule, use that rule
 						return *rule;
@@ -421,16 +423,16 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 		}
 
 		// otherwise, use the normal maximized state
-		return WithPreview(txmp::TaskbarState::MaximisedWindow, m_Config.MaximisedWindowAppearance);
+		return WithPreview(txmp::TaskbarState::MaximisedWindow, config.MaximisedWindowAppearance);
 	}
 
-	if (m_Config.VisibleWindowAppearance.Enabled && (hasMaximizedWindows || SetContainsValidWindows(taskbar->second.NormalWindows)))
+	if (config.VisibleWindowAppearance.Enabled && (hasMaximizedWindows || SetContainsValidWindows(taskbar->second.NormalWindows)))
 	{
 		// if there is no maximized window, and the foreground window is on the current monitor
-		if (m_Config.VisibleWindowAppearance.HasRules() && !hasMaximizedWindows && m_ForegroundWindow.monitor() == taskbar->first)
+		if (config.VisibleWindowAppearance.HasRules() && !hasMaximizedWindows && m_ForegroundWindow.monitor() == taskbar->first)
 		{
 			// find a rule for the foreground window
-			if (const auto rule = m_Config.VisibleWindowAppearance.FindRule(m_ForegroundWindow))
+			if (const auto rule = config.VisibleWindowAppearance.FindRule(m_ForegroundWindow))
 			{
 				// if it has a rule, use that rule
 				return *rule;
@@ -438,10 +440,10 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 		}
 
 		// otherwise use normal visible state
-		return WithPreview(txmp::TaskbarState::VisibleWindow, m_Config.VisibleWindowAppearance);
+		return WithPreview(txmp::TaskbarState::VisibleWindow, config.VisibleWindowAppearance);
 	}
 
-	return WithPreview(txmp::TaskbarState::Desktop, m_Config.DesktopAppearance);
+	return WithPreview(txmp::TaskbarState::Desktop, config.DesktopAppearance);
 }
 
 void TaskbarAttributeWorker::ShowAeroPeekButton(const TaskbarInfo &taskbar, bool show)
@@ -509,6 +511,10 @@ void TaskbarAttributeWorker::SetAttribute(taskbar_iterator taskbar, TaskbarAppea
 		if (config.Accent == ACCENT_NORMAL)
 		{
 			HresultVerify(m_TaskbarService->ReturnTaskbarToDefaultAppearance(taskbar->second.Taskbar.TaskbarWindow), spdlog::level::info, L"Failed to restore taskbar to normal");
+		}
+		else if (config.Accent == ACCENT_ENABLE_BLURBEHIND)
+		{
+			HresultVerify(m_TaskbarService->SetTaskbarBlur(taskbar->second.Taskbar.TaskbarWindow, config.Color.ToABGR(), config.BlurRadius / 3), spdlog::level::info, L"Failed to set taskbar brush");
 		}
 		else
 		{
@@ -649,7 +655,7 @@ void TaskbarAttributeWorker::InsertWindow(Window window, bool refresh)
 	// changing, it means m_Taskbars is cleared while we still
 	// have an iterator to it. Acquiring the iterator after the
 	// call to on_current_desktop resolves this issue.
-	const bool windowMatches = window.is_user_window() && !m_Config.IgnoredWindows.IsFiltered(window);
+	const bool windowMatches = window.is_user_window() && !m_ConfigManager.GetConfig().IgnoredWindows.IsFiltered(window);
 	const HMONITOR mon = window.monitor();
 
 	for (auto it = m_Taskbars.begin(); it != m_Taskbars.end(); ++it)
@@ -936,7 +942,7 @@ void TaskbarAttributeWorker::ReturnToStock()
 		std::vector<TaskbarInfo> taskbarInfos;
 		for (auto it = m_Taskbars.begin(); it != m_Taskbars.end(); ++it)
 		{
-			SetAttribute(it, { ACCENT_NORMAL, { 0, 0, 0, 0 }, true, true });
+			SetAttribute(it, { ACCENT_NORMAL, { 0, 0, 0, 0 }, true, true, 0.0f });
 
 			taskbarInfos.push_back(it->second.Taskbar);
 		}
@@ -1126,7 +1132,7 @@ TaskbarType TaskbarAttributeWorker::GetTaskbarType(Window taskbar)
 	}
 }
 
-TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hInstance, DynamicLoader &loader, const std::optional<std::filesystem::path> &storageFolder) :
+TaskbarAttributeWorker::TaskbarAttributeWorker(ConfigManager &cfgManager, HINSTANCE hInstance, DynamicLoader &loader, const std::optional<std::filesystem::path> &storageFolder) :
 	MessageWindow(TTB_WORKERWINDOW, TTB_WORKERWINDOW, hInstance, WS_POPUP, WS_EX_NOREDIRECTIONBITMAP),
 	SetWindowCompositionAttribute(loader.SetWindowCompositionAttribute()),
 	ShouldSystemUseDarkMode(loader.ShouldSystemUseDarkMode()),
@@ -1139,7 +1145,7 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hIns
 	m_TaskbarType(TaskbarType::Unknown),
 	m_CurrentStartMonitor(nullptr),
 	m_CurrentSearchMonitor(nullptr),
-	m_Config(cfg),
+	m_ConfigManager(cfgManager),
 	m_ThunkPage(member_thunk::allocate_page()),
 	m_PeekUnpeekHook(CreateHook(EVENT_SYSTEM_PEEKSTART, EVENT_SYSTEM_PEEKEND, CreateThunk(&TaskbarAttributeWorker::OnAeroPeekEnterExit))),
 	m_CloakUncloakHook(CreateHook(EVENT_OBJECT_CLOAKED, EVENT_OBJECT_UNCLOAKED, CreateThunk(&TaskbarAttributeWorker::WindowInsertRemove<EVENT_OBJECT_UNCLOAKED, EVENT_OBJECT_CLOAKED>))),
@@ -1160,11 +1166,12 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hIns
 	m_SearchVisibilityChangeMessage(Window::RegisterMessage(WM_TTBSEARCHVISIBILITYCHANGE)),
 	m_ForceRefreshTaskbar(Window::RegisterMessage(WM_TTBFORCEREFRESHTASKBAR)),
 	m_LastExplorerPid(0),
-	m_HookDll(storageFolder, m_Config.CopyDlls.value_or(true), L"ExplorerHooks.dll"),
+	m_HookDll(storageFolder, cfgManager.GetConfig().CopyDlls.value_or(true), L"ExplorerHooks.dll"),
 	m_InjectExplorerHook(m_HookDll.GetProc<PFN_INJECT_EXPLORER_HOOK>("InjectExplorerHook")),
-	m_TAPDll(storageFolder, m_Config.CopyDlls.value_or(true), L"ExplorerTAP.dll"),
+	m_TAPDll(storageFolder, cfgManager.GetConfig().CopyDlls.value_or(true), L"ExplorerTAP.dll"),
 	m_InjectExplorerTAP(m_TAPDll.GetProc<PFN_INJECT_EXPLORER_TAP>("InjectExplorerTAP")),
-	m_IsWindows11(win32::IsAtLeastBuild(22000))
+	m_IsWindows11(win32::IsAtLeastBuild(22000)),
+	m_IsBlurAccentStateSupported(!m_IsWindows11)
 {
 	const auto stateThunk = CreateThunk(&TaskbarAttributeWorker::OnWindowStateChange);
 	m_ResizeMoveHook = CreateHook(EVENT_OBJECT_LOCATIONCHANGE, stateThunk);
@@ -1179,6 +1186,15 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(const Config &cfg, HINSTANCE hIns
 	}
 
 	CreateAppVisibility();
+
+	if (win32::IsExactBuild(22000))
+	{
+		// Windows 11 RTM. sometimes very laggy at release, fixed in KB5006746 (22000.282)
+		if (const auto [version, hr] = win32::GetWindowsBuild(); SUCCEEDED(hr))
+		{
+			m_IsBlurAccentStateSupported = version.Revision >= 282;
+		}
+	}
 
 	// we don't want to consider the first state reset as an Explorer restart.
 	ResetState(true);
@@ -1352,6 +1368,13 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 				}
 
 				HresultVerify(m_TaskbarService->RestoreAllTaskbarsToDefaultWhenProcessDies(GetCurrentProcessId()), spdlog::level::warn, L"Couldn't configure TAP to restore taskbar appearance once " APP_NAME L" dies.");
+			}
+			else
+			{
+				if (!m_IsBlurAccentStateSupported)
+				{
+					m_ConfigManager.UpgradeBlur();
+				}
 			}
 
 			InsertTaskbar(GetTaskbarMonitor(main_taskbar), main_taskbar);

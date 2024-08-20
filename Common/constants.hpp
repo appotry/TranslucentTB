@@ -14,7 +14,7 @@ static constexpr Util::null_terminated_wstring_view MUTEX_GUID = L"344635E9-9AE4
 static constexpr Util::null_terminated_wstring_view TAP_READY_EVENT = L"TTBTAP_Ready";
 
 // Current version of the API used for IPC with the TAP
-static constexpr std::uint32_t TAP_API_VERSION = 2;
+static constexpr std::uint32_t TAP_API_VERSION = 3;
 
 // Tray icon GUID
 static constexpr GUID TRAY_GUID = { 0x2EA4687, 0xE0EC, 0x4B84, { 0x9B, 0x68, 0xBD, 0x1B, 0xB4, 0xCC, 0xD2, 0x24 } };

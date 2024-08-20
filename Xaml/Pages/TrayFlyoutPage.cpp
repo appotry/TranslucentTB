@@ -8,12 +8,9 @@
 #include "arch.h"
 #include <winbase.h>
 
-#include "config/taskbarappearance.hpp"
-
 namespace winrt::TranslucentTB::Xaml::Pages::implementation
 {
 	TrayFlyoutPage::TrayFlyoutPage(bool hasPackageIdentity) :
-		m_BlurSupported(TaskbarAppearance::IsBlurSupported()),
 		m_HasPackageIdentity(hasPackageIdentity)
 	{
 		SYSTEM_POWER_STATUS powerStatus;

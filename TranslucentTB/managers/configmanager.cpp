@@ -263,6 +263,27 @@ ConfigManager::~ConfigManager()
 	}
 }
 
+void ConfigManager::UpgradeBlur()
+{
+	std::initializer_list<TaskbarAppearance*> appearances = {
+		&m_Config.DesktopAppearance,
+		&m_Config.VisibleWindowAppearance,
+		&m_Config.MaximisedWindowAppearance,
+		&m_Config.StartOpenedAppearance,
+		&m_Config.SearchOpenedAppearance,
+		&m_Config.TaskViewOpenedAppearance,
+		&m_Config.BatterySaverAppearance
+	};
+
+	for (TaskbarAppearance* appearance : appearances)
+	{
+		if (appearance->Accent == ACCENT_ENABLE_BLURBEHIND)
+		{
+			appearance->Accent = ACCENT_ENABLE_ACRYLICBLURBEHIND;
+		}
+	}
+}
+
 void ConfigManager::UpdateVerbosity()
 {
 	if (const auto sink = Log::GetSink())

@@ -45,6 +45,7 @@ public:
 	ConfigManager(const std::optional<std::filesystem::path> &storageFolder, bool &fileExists, callback_t callback, void *context);
 	~ConfigManager();
 
+	void UpgradeBlur();
 	void UpdateVerbosity();
 	void EditConfigFile();
 	void DeleteConfigFile();
