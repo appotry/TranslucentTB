@@ -49,7 +49,16 @@ If you want to get the latest bleeding edge build, you can grab it over at the [
 
 ## Add to Startup
 
-To add TranslucentTB to startup, check the "Open at boot" entry in the TranslucentTB tray icon's context menu. If it is grayed out, TranslucentTB startup has been disabled by your organization.
+To add TranslucentTB to startup, check the "Open at boot" entry in the TranslucentTB tray icon's context menu. If you are having issues or the entry in the context menu is grayed out, try applying the following registry changes:
+```reg
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"EnableFullTrustStartupTasks"=dword:00000002
+"EnableUwpStartupTasks"=dword:00000002
+"SupportFullTrustStartupTasks"=dword:00000001
+"SupportUwpStartupTasks"=dword:00000001
+```
 
 Portable versions can be added to startup by creating a shortcut to the executable in `%AppData%\Microsoft\Windows\Start Menu\Programs\Startup`.
 

@@ -24,6 +24,11 @@
         },
         "show_line": {
           "type": "boolean"
+        },
+        "blur_radius": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 750
         }
       },
       "type": "object"
