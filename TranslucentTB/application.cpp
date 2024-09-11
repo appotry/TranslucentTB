@@ -72,7 +72,6 @@ void Application::CreateWelcomePage()
 
 Application::Application(HINSTANCE hInst, std::optional<std::filesystem::path> storageFolder, bool fileExists) :
 	m_Config(storageFolder, fileExists, ConfigurationChanged, this),
-	m_DispatcherController(UWP::CreateDispatcherController()),
 	m_Worker(m_Config, hInst, m_Loader, storageFolder),
 	m_UwpCRTDep(
 		hInst,
@@ -102,7 +101,8 @@ Application::Application(HINSTANCE hInst, std::optional<std::filesystem::path> s
 	m_XamlManager(UWP::CreateXamlManager()),
 	m_AppWindow(*this, !fileExists, storageFolder.has_value(), hInst, m_Loader),
 	m_Xaml(hInst),
-	m_ShuttingDown(false)
+	m_ShuttingDown(false),
+	m_Dispatcher(winrt::Windows::System::DispatcherQueue::GetForCurrentThread())
 {
 	if (const auto spam = m_Loader.SetPreferredAppMode())
 	{
@@ -172,8 +172,7 @@ int Application::Run()
 
 winrt::fire_and_forget Application::Shutdown()
 {
-	// several calls to Shutdown crash the app because DispatcherController::ShutdownQueueAsync
-	// can only be called once. but it can happen that Shutdown is called several times
+	// it can happen that Shutdown is called several times
 	// e.g. the user uninstalls the app while the welcome page is opened, which causes Shutdown
 	// to close the welcome page, which tries to shutdown the app.
 	if (!m_ShuttingDown)
@@ -203,9 +202,7 @@ winrt::fire_and_forget Application::Shutdown()
 		if (canExit)
 		{
 			// go back to the main thread for exiting
-			co_await wil::resume_foreground(m_DispatcherController.DispatcherQueue());
-
-			co_await m_DispatcherController.ShutdownQueueAsync();
+			co_await wil::resume_foreground(m_Dispatcher);
 
 			// delete the config file if the user hasn't went through the welcome page
 			// to make them go through it again next startup.

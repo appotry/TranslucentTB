@@ -14,7 +14,6 @@ namespace UWP {
 	std::optional<std::wstring> GetPackageFamilyName();
 	std::optional<std::filesystem::path> GetAppStorageFolder();
 	winrt::fire_and_forget OpenUri(const wf::Uri &uri);
-	winrt::Windows::System::DispatcherQueueController CreateDispatcherController();
 	Window GetCoreWindow();
 	void HideCoreWindow();
 	wuxh::WindowsXamlManager CreateXamlManager();

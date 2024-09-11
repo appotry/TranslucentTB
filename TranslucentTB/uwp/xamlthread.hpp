@@ -26,8 +26,8 @@ class XamlThread {
 private:
 	wil::unique_handle m_Thread;
 	wil::slim_event_manual_reset m_Ready;
-	winrt::Windows::System::DispatcherQueueController m_Dispatcher;
 	wuxh::WindowsXamlManager m_Manager;
+	winrt::Windows::System::DispatcherQueue m_Dispatcher;
 
 	winrt::com_ptr<IDesktopWindowXamlSourceNative2> m_Source;
 
@@ -69,12 +69,12 @@ public:
 		// because XAML Islands has a ton of bugs when hosting more than 1 window per thread
 		assert(m_CurrentWindow == nullptr);
 
-		co_await wil::resume_foreground(GetDispatcher());
+		co_await wil::resume_foreground(m_Dispatcher);
 
 		std::unique_ptr<XamlPageHost<T>> host;
 		try
 		{
-			host = std::make_unique<XamlPageHost<T>>(classRef, dragRegionClass, pos, m_Dispatcher.DispatcherQueue(), DeletedCallback, this, args...);
+			host = std::make_unique<XamlPageHost<T>>(classRef, dragRegionClass, pos, m_Dispatcher, DeletedCallback, this, args...);
 		}
 		HresultErrorCatch(spdlog::level::critical, L"Failed to create XAML window");
 
@@ -89,7 +89,7 @@ public:
 
 	winrt::Windows::System::DispatcherQueue GetDispatcher() const
 	{
-		return m_Dispatcher.DispatcherQueue();
+		return m_Dispatcher;
 	}
 
 	~XamlThread()

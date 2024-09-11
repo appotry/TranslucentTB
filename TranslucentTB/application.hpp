@@ -28,7 +28,6 @@ class Application final {
 
 	DynamicLoader m_Loader;
 
-	winrt::Windows::System::DispatcherQueueController m_DispatcherController;
 	TaskbarAttributeWorker m_Worker;
 	StartupManager m_Startup;
 
@@ -41,6 +40,8 @@ class Application final {
 
 	XamlThreadPool m_Xaml;
 	bool m_ShuttingDown;
+
+	winrt::Windows::System::DispatcherQueue m_Dispatcher;
 
 	void CreateWelcomePage();
 	Application(HINSTANCE hInst, std::optional<std::filesystem::path> storageFolder, bool fileExists);
@@ -68,7 +69,7 @@ public:
 	winrt::fire_and_forget DispatchToMainThread(winrt::Windows::System::DispatcherQueueHandler callback,
 		winrt::Windows::System::DispatcherQueuePriority priority = winrt::Windows::System::DispatcherQueuePriority::Normal)
 	{
-		co_await wil::resume_foreground(m_DispatcherController.DispatcherQueue(), priority);
+		co_await wil::resume_foreground(m_Dispatcher, priority);
 		callback();
 	}
 

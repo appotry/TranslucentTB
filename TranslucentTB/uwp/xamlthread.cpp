@@ -54,8 +54,8 @@ void XamlThread::ThreadInit()
 	}
 	HresultErrorCatch(spdlog::level::critical, L"Failed to initialize thread apartment");
 
-	m_Dispatcher = UWP::CreateDispatcherController();
 	m_Manager = UWP::CreateXamlManager();
+	m_Dispatcher = winrt::Windows::System::DispatcherQueue::GetForCurrentThread();
 }
 
 bool XamlThread::PreTranslateMessage(const MSG &msg)
@@ -90,7 +90,7 @@ bool XamlThread::PreTranslateMessage(const MSG &msg)
 
 winrt::fire_and_forget XamlThread::ThreadDeinit()
 {
-	co_await wil::resume_foreground(GetDispatcher(), winrt::Windows::System::DispatcherQueuePriority::Low);
+	co_await wil::resume_foreground(m_Dispatcher, winrt::Windows::System::DispatcherQueuePriority::Low);
 
 	// only called during destruction of thread pool, so no locking needed.
 	m_CurrentWindow.reset();
@@ -99,7 +99,6 @@ winrt::fire_and_forget XamlThread::ThreadDeinit()
 	m_Manager.Close();
 	m_Manager = nullptr;
 
-	co_await m_Dispatcher.ShutdownQueueAsync();
 	PostQuitMessage(0);
 }
 
