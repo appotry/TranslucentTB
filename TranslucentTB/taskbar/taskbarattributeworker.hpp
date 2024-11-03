@@ -87,6 +87,7 @@ private:
 	bool m_ResetStateReentered;
 	HMONITOR m_CurrentStartMonitor;
 	HMONITOR m_CurrentSearchMonitor;
+	HMONITOR m_CurrentFindInStartMonitor;
 	Window m_ForegroundWindow;
 	TaskbarType m_TaskbarType;
 	std::unordered_map<HMONITOR, MonitorInfo> m_Taskbars;
@@ -120,7 +121,6 @@ private:
 	winrt::event_token m_SearchViewVisibilityChangedToken;
 	winrt::WindowsUdk::UI::Shell::ShellViewCoordinator m_FindInStartViewCoordinator;
 	winrt::event_token m_FindInStartVisibilityChangedToken;
-	LPARAM m_highestSeenSearchSource;
 
 	// Messages
 	std::optional<UINT> m_TaskbarCreatedMessage;
@@ -129,6 +129,7 @@ private:
 	std::optional<UINT> m_IsTaskViewOpenedMessage;
 	std::optional<UINT> m_StartVisibilityChangeMessage;
 	std::optional<UINT> m_SearchVisibilityChangeMessage;
+	std::optional<UINT> m_FindInStartVisibilityChangeMessage;
 	std::optional<UINT> m_ForceRefreshTaskbar;
 
 	// Explorer crash detection
@@ -167,6 +168,7 @@ private:
 	void OnStartVisibilityChange(bool state);
 	void OnTaskViewVisibilityChange(bool state);
 	void OnSearchVisibilityChange(bool state);
+	void OnFindInStartVisibilityChange(bool state);
 	void OnForceRefreshTaskbar(Window taskbar);
 	LRESULT OnSystemSettingsChange(UINT uiAction);
 	LRESULT OnPowerBroadcast(const POWERBROADCAST_SETTING *settings);
@@ -207,6 +209,7 @@ private:
 	void ReturnToStock();
 	bool IsStartMenuOpened() const;
 	bool IsSearchOpened() const;
+	bool IsFindInStartOpened() const;
 	void InsertTaskbar(HMONITOR mon, Window window);
 	static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
 	static BOOL CALLBACK WindowEnumProc(HWND hwnd, LPARAM lParam);
@@ -242,6 +245,13 @@ private:
 	inline static HMONITOR GetSearchMonitor() noexcept
 	{
 		// same assumption for search
+		Sleep(5);
+		return Window::ForegroundWindow().monitor();
+	}
+
+	inline static HMONITOR GetFindInStartMonitor() noexcept
+	{
+		// same assumption for find in start
 		Sleep(5);
 		return Window::ForegroundWindow().monitor();
 	}

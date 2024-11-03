@@ -233,6 +233,31 @@ void TaskbarAttributeWorker::OnSearchVisibilityChange(bool state)
 	}
 }
 
+void TaskbarAttributeWorker::OnFindInStartVisibilityChange(bool state)
+{
+	HMONITOR mon = nullptr;
+	if (state)
+	{
+		mon = m_CurrentFindInStartMonitor = GetFindInStartMonitor();
+
+		if (Error::ShouldLog<spdlog::level::debug>())
+		{
+			MessagePrint(spdlog::level::debug, std::format(L"Find in Start opened on monitor {}", static_cast<void*>(mon)));
+		}
+	}
+	else
+	{
+		mon = std::exchange(m_CurrentFindInStartMonitor, nullptr);
+
+		MessagePrint(spdlog::level::debug, L"Find in Start closed");
+	}
+
+	if (const auto iter = m_Taskbars.find(mon); iter != m_Taskbars.end())
+	{
+		RefreshAttribute(iter);
+	}
+}
+
 void TaskbarAttributeWorker::OnForceRefreshTaskbar(Window taskbar)
 {
 	if (!m_TaskbarService)
@@ -336,11 +361,12 @@ LRESULT TaskbarAttributeWorker::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM 
 	}
 	else if (uMsg == m_SearchVisibilityChangeMessage)
 	{
-		m_highestSeenSearchSource = std::max(m_highestSeenSearchSource, lParam);
-		if (lParam == m_highestSeenSearchSource)
-		{
-			OnSearchVisibilityChange(wParam);
-		}
+		OnSearchVisibilityChange(wParam);
+		return 0;
+	}
+	else if (uMsg == m_FindInStartVisibilityChangeMessage)
+	{
+		OnFindInStartVisibilityChange(wParam);
 		return 0;
 	}
 	else if (uMsg == m_ForceRefreshTaskbar)
@@ -374,12 +400,12 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 
 	// on windows 11, search is considered open when start is, so we need to check for start first.
 	bool startOpened;
-	if (m_IsWindows11 && m_CurrentSearchMonitor != nullptr)
+	if (m_IsWindows11 && (m_CurrentSearchMonitor != nullptr || m_CurrentFindInStartMonitor != nullptr))
 	{
 		// checking the search monitor is more reliable on windows 11 (if available)
 		// so check the start monitor to see if it's open and then use the search monitor
 		// to check *where* it's open.
-		startOpened = m_CurrentStartMonitor != nullptr && m_CurrentSearchMonitor == taskbar->first;
+		startOpened = m_CurrentStartMonitor != nullptr && (m_CurrentSearchMonitor == taskbar->first || m_CurrentFindInStartMonitor == taskbar->first);
 	}
 	else
 	{
@@ -391,7 +417,7 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 		return WithPreview(txmp::TaskbarState::StartOpened, config.StartOpenedAppearance);
 	}
 
-	if (config.SearchOpenedAppearance.Enabled && !startOpened && m_CurrentSearchMonitor == taskbar->first)
+	if (config.SearchOpenedAppearance.Enabled && !startOpened && (m_CurrentSearchMonitor == taskbar->first || m_CurrentFindInStartMonitor == taskbar->first))
 	{
 		return WithPreview(txmp::TaskbarState::SearchOpened, config.SearchOpenedAppearance);
 	}
@@ -830,18 +856,18 @@ void TaskbarAttributeWorker::CreateSearchManager()
 				using winrt::WindowsUdk::UI::Shell::ShellView;
 				using winrt::WindowsUdk::UI::Shell::ShellViewCoordinator;
 
-				m_SearchViewCoordinator = ShellViewCoordinator{winrt::WindowsUdk::UI::Shell::ShellView::Search};
+				m_SearchViewCoordinator = ShellViewCoordinator { winrt::WindowsUdk::UI::Shell::ShellView::Search };
 
 				m_SearchViewVisibilityChangedToken = m_SearchViewCoordinator.VisibilityChanged([this](const ShellViewCoordinator &coordinator, const wf::IInspectable &)
 				{
-					post_message(*m_SearchVisibilityChangeMessage, coordinator.Visibility() == winrt::WindowsUdk::UI::Shell::ViewVisibility::Visible, 1);
+					post_message(*m_SearchVisibilityChangeMessage, coordinator.Visibility() == winrt::WindowsUdk::UI::Shell::ViewVisibility::Visible);
 				});
 
 				m_FindInStartViewCoordinator = ShellViewCoordinator { winrt::WindowsUdk::UI::Shell::ShellView::FindInStart };
 
 				m_FindInStartVisibilityChangedToken = m_FindInStartViewCoordinator.VisibilityChanged([this](const ShellViewCoordinator& coordinator, const wf::IInspectable&)
 				{
-					post_message(*m_SearchVisibilityChangeMessage, coordinator.Visibility() == winrt::WindowsUdk::UI::Shell::ViewVisibility::Visible, 2);
+					post_message(*m_FindInStartVisibilityChangeMessage, coordinator.Visibility() == winrt::WindowsUdk::UI::Shell::ViewVisibility::Visible);
 				});
 			}
 			HresultErrorCatch(spdlog::level::warn, L"Failed to create ShellViewCoordinator");
@@ -1001,6 +1027,23 @@ catch (const winrt::hresult_error &err)
 	return false;
 }
 
+bool TaskbarAttributeWorker::IsFindInStartOpened() const try
+{
+	if (m_FindInStartViewCoordinator)
+	{
+		return m_FindInStartViewCoordinator.Visibility() == winrt::WindowsUdk::UI::Shell::ViewVisibility::Visible;
+	}
+	else
+	{
+		return false;
+	}
+}
+catch (const winrt::hresult_error &err)
+{
+	HresultErrorHandle(err, spdlog::level::info, L"Failed to check if find in start is opened");
+	return false;
+}
+
 void TaskbarAttributeWorker::InsertTaskbar(HMONITOR mon, Window window)
 {
 	TaskbarInfo taskbarInfo = { .TaskbarWindow = window };
@@ -1017,16 +1060,13 @@ void TaskbarAttributeWorker::InsertTaskbar(HMONITOR mon, Window window)
 	m_NormalTaskbars.insert(window);
 	m_Taskbars.insert_or_assign(mon, MonitorInfo { taskbarInfo });
 
-	if (m_TaskbarType != TaskbarType::XAML)
+	if (wil::unique_hhook hook { m_InjectExplorerHook(window) })
 	{
-		if (wil::unique_hhook hook { m_InjectExplorerHook(window) })
-		{
-			m_Hooks.push_back(std::move(hook));
-		}
-		else
-		{
-			LastErrorHandle(spdlog::level::critical, L"Failed to set hook.");
-		}
+		m_Hooks.push_back(std::move(hook));
+	}
+	else
+	{
+		LastErrorHandle(spdlog::level::critical, L"Failed to set hook.");
 	}
 }
 
@@ -1095,7 +1135,8 @@ TaskbarType TaskbarAttributeWorker::GetTaskbarType(Window taskbar)
 
 	if (!Module32First(snapshot.get(), &me))
 	{
-		LastErrorHandle(spdlog::level::critical, L"Failed to list Explorer modules.");
+		// this can happen if explorer dies
+		return TaskbarType::Unknown;
 	}
 
 	do
@@ -1123,7 +1164,7 @@ TaskbarType TaskbarAttributeWorker::GetTaskbarType(Window taskbar)
 		}
 		else
 		{
-			MessagePrint(spdlog::level::critical, L"Cannot determine taskbar type");
+			return TaskbarType::Unknown;
 		}
 	}
 	else
@@ -1145,6 +1186,7 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(ConfigManager &cfgManager, HINSTA
 	m_TaskbarType(TaskbarType::Unknown),
 	m_CurrentStartMonitor(nullptr),
 	m_CurrentSearchMonitor(nullptr),
+	m_CurrentFindInStartMonitor(nullptr),
 	m_ConfigManager(cfgManager),
 	m_ThunkPage(member_thunk::allocate_page()),
 	m_PeekUnpeekHook(CreateHook(EVENT_SYSTEM_PEEKSTART, EVENT_SYSTEM_PEEKEND, CreateThunk(&TaskbarAttributeWorker::OnAeroPeekEnterExit))),
@@ -1157,13 +1199,13 @@ TaskbarAttributeWorker::TaskbarAttributeWorker(ConfigManager &cfgManager, HINSTA
 	m_SearchManager(nullptr),
 	m_SearchViewCoordinator(nullptr),
 	m_FindInStartViewCoordinator(nullptr),
-	m_highestSeenSearchSource(0),
 	m_TaskbarCreatedMessage(Window::RegisterMessage(WM_TASKBARCREATED)),
 	m_RefreshRequestedMessage(Window::RegisterMessage(WM_TTBHOOKREQUESTREFRESH)),
 	m_TaskViewVisibilityChangeMessage(Window::RegisterMessage(WM_TTBHOOKTASKVIEWVISIBILITYCHANGE)),
 	m_IsTaskViewOpenedMessage(Window::RegisterMessage(WM_TTBHOOKISTASKVIEWOPENED)),
 	m_StartVisibilityChangeMessage(Window::RegisterMessage(WM_TTBSTARTVISIBILITYCHANGE)),
 	m_SearchVisibilityChangeMessage(Window::RegisterMessage(WM_TTBSEARCHVISIBILITYCHANGE)),
+	m_FindInStartVisibilityChangeMessage(Window::RegisterMessage(WM_TTBFINDINSTARTVISIBILITYCHANGE)),
 	m_ForceRefreshTaskbar(Window::RegisterMessage(WM_TTBFORCEREFRESHTASKBAR)),
 	m_LastExplorerPid(0),
 	m_HookDll(storageFolder, cfgManager.GetConfig().CopyDlls.value_or(true), L"ExplorerHooks.dll"),
@@ -1264,6 +1306,17 @@ void TaskbarAttributeWorker::DumpState()
 		MessagePrint(spdlog::level::off, L"Search is opened: false");
 	}
 
+	if (m_CurrentFindInStartMonitor != nullptr)
+	{
+		buf.clear();
+		std::format_to(std::back_inserter(buf), L"Find in Start is opened: true [monitor {}]", static_cast<void*>(m_CurrentFindInStartMonitor));
+		MessagePrint(spdlog::level::off, buf);
+	}
+	else
+	{
+		MessagePrint(spdlog::level::off, L"Find in Start is opened: false");
+	}
+
 	buf.clear();
 	std::format_to(std::back_inserter(buf), L"Current foreground window: {}", DumpWindow(m_ForegroundWindow));
 	MessagePrint(spdlog::level::off, buf);
@@ -1321,6 +1374,7 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 		m_TaskViewActive = false;
 		m_CurrentStartMonitor = nullptr;
 		m_CurrentSearchMonitor = nullptr;
+		m_CurrentFindInStartMonitor = nullptr;
 		m_ForegroundWindow = Window::NullWindow;
 
 		m_Taskbars.clear();
@@ -1369,12 +1423,17 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 
 				HresultVerify(m_TaskbarService->RestoreAllTaskbarsToDefaultWhenProcessDies(GetCurrentProcessId()), spdlog::level::warn, L"Couldn't configure TAP to restore taskbar appearance once " APP_NAME L" dies.");
 			}
-			else
+			else if (m_TaskbarType != TaskbarType::Unknown)
 			{
 				if (!m_IsBlurAccentStateSupported)
 				{
 					m_ConfigManager.UpgradeBlur();
 				}
+			}
+			else
+			{
+				// unknown taskbar type - we might've detected explorer too early. do nothing for now. we should get a refresh later and be able to detect it.
+				return;
 			}
 
 			InsertTaskbar(GetTaskbarMonitor(main_taskbar), main_taskbar);
@@ -1419,7 +1478,12 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 
 		if (IsSearchOpened())
 		{
-			m_CurrentStartMonitor = GetSearchMonitor();
+			m_CurrentSearchMonitor = GetSearchMonitor();
+		}
+
+		if (IsFindInStartOpened())
+		{
+			m_CurrentFindInStartMonitor = GetFindInStartMonitor();
 		}
 
 		for (const Window window : Window::FindEnum())
