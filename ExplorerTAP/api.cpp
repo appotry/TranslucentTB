@@ -9,84 +9,49 @@
 #include "taskbarappearanceservice.hpp"
 #include "win32.hpp"
 
-HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv) try
+LRESULT CALLBACK CallWndProc(int nCode, WPARAM wParam, LPARAM lParam) noexcept
+{
+	// Placeholder
+	return CallNextHookEx(nullptr, nCode, wParam, lParam);
+}
+
+HRESULT InjectExplorerTAP(HWND window, REFIID riid, LPVOID* ppv) try
 {
 	TaskbarAppearanceService::InstallProxyStub();
 
-	winrt::com_ptr<IUnknown> service;
-	HRESULT hr = GetActiveObject(CLSID_TaskbarAppearanceService, nullptr, service.put());
+	DWORD pid = 0;
+	const DWORD tid = GetWindowThreadProcessId(window, &pid);
 
-	if (hr == MK_E_UNAVAILABLE)
+	wil::unique_process_handle proc(OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pid));
+	if (!proc) [[unlikely]]
 	{
-		const auto event = TAPSite::GetReadyEvent();
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
 
-		wil::unique_process_handle proc(OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, false, pid));
+	if (!DetourFindRemotePayload(proc.get(), EXPLORER_PAYLOAD, nullptr))
+	{
+		proc.reset(OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE, false, pid));
 		if (!proc) [[unlikely]]
 		{
 			return HRESULT_FROM_WIN32(GetLastError());
 		}
 
-		if (!DetourFindRemotePayload(proc.get(), EXPLORER_PAYLOAD, nullptr))
-		{
-			static constexpr uint32_t content = 0xDEADBEEF;
-			if (!DetourCopyPayloadToProcess(proc.get(), EXPLORER_PAYLOAD, &content, sizeof(content))) [[unlikely]]
-			{
-				return HRESULT_FROM_WIN32(GetLastError());
-			}
-		}
-
-		const auto [location, hr2] = win32::GetDllLocation(wil::GetModuleInstanceHandle());
-		if (FAILED(hr2)) [[unlikely]]
-		{
-			return hr2;
-		}
-
-		const auto size = sizeof(wchar_t) * (location.native().size() + 1); // null terminator
-		void* ptr = VirtualAllocEx(proc.get(), nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		if (!ptr)
+		static constexpr uint32_t content = 0xDEADBEEF;
+		if (!DetourCopyPayloadToProcess(proc.get(), EXPLORER_PAYLOAD, &content, sizeof(content))) [[unlikely]]
 		{
 			return HRESULT_FROM_WIN32(GetLastError());
 		}
+	}
 
-		SIZE_T written = 0;
-		if (!WriteProcessMemory(proc.get(), ptr, location.c_str(), size, &written))
+	{
+		const auto event = TAPSite::GetReadyEvent();
+
+		// InitializeXamlDiagnosticsEx pins the DLL forever in the target process - so we can discard the hook once it happens
+		// this has the bonus effect that if InitializeXamlDiagnosticsEx fails, the DLL gets unloaded.
+		wil::unique_hhook hook(SetWindowsHookEx(WH_CALLWNDPROC, CallWndProc, wil::GetModuleInstanceHandle(), tid));
+		if (!hook)
 		{
 			return HRESULT_FROM_WIN32(GetLastError());
-		}
-
-		if (written != size)
-		{
-			return HRESULT_FROM_WIN32(ERROR_PARTIAL_COPY);
-		}
-
-		wil::unique_handle handle(CreateRemoteThread(proc.get(), nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&LoadLibrary), ptr, 0, nullptr));
-		if (!handle)
-		{
-			return HRESULT_FROM_WIN32(GetLastError());
-		}
-
-		static constexpr DWORD LOAD_TIMEOUT =
-#ifdef _DEBUG
-			// do not timeout on debug builds, to allow debugging the DLL while it's loading in explorer
-			INFINITE;
-#else
-			5000;
-#endif
-
-		if (WaitForSingleObject(handle.get(), LOAD_TIMEOUT) != WAIT_OBJECT_0)
-		{
-			return HRESULT_FROM_WIN32(WAIT_TIMEOUT);
-		}
-
-		DWORD exitCode = 0;
-		if (!GetExitCodeThread(handle.get(), &exitCode))
-		{
-			return HRESULT_FROM_WIN32(GetLastError());
-		}
-
-		if (!exitCode)
-		{
-			return E_FAIL;
 		}
 
 		static constexpr DWORD READY_TIMEOUT =
@@ -101,10 +66,10 @@ HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv) try
 		{
 			return HRESULT_FROM_WIN32(WAIT_TIMEOUT);
 		}
-
-		hr = GetActiveObject(CLSID_TaskbarAppearanceService, nullptr, service.put());
 	}
 
+	winrt::com_ptr<IUnknown> service;
+	HRESULT hr = GetActiveObject(CLSID_TaskbarAppearanceService, nullptr, service.put());
 	if (FAILED(hr)) [[unlikely]]
 	{
 		return hr;

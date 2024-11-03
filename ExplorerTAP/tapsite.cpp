@@ -10,30 +10,32 @@ winrt::weak_ref<VisualTreeWatcher> TAPSite::s_VisualTreeWatcher;
 wil::unique_event_nothrow TAPSite::GetReadyEvent()
 {
 	wil::unique_event_nothrow readyEvent;
-	winrt::check_hresult(readyEvent.create(wil::EventOptions::None, TAP_READY_EVENT.c_str()));
+	winrt::check_hresult(readyEvent.create(wil::EventOptions::ManualReset, TAP_READY_EVENT.c_str()));
 	return readyEvent;
 }
 
 DWORD TAPSite::Install(void*)
 {
+	const auto event = GetReadyEvent();
+
 	auto [location, hr] = win32::GetDllLocation(wil::GetModuleInstanceHandle());
 	if (FAILED(hr)) [[unlikely]]
 	{
-		SignalReady();
+		event.SetEvent();
 		return hr;
 	}
 
 	const wil::unique_hmodule wux(LoadLibraryEx(L"Windows.UI.Xaml.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32));
 	if (!wux) [[unlikely]]
 	{
-		SignalReady();
+		event.SetEvent();
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 
 	const auto ixde = reinterpret_cast<PFN_INITIALIZE_XAML_DIAGNOSTICS_EX>(GetProcAddress(wux.get(), UTIL_STRINGIFY_UTF8(InitializeXamlDiagnosticsEx)));
 	if (!ixde) [[unlikely]]
 	{
-		SignalReady();
+		event.SetEvent();
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 
@@ -60,17 +62,8 @@ DWORD TAPSite::Install(void*)
 	} while (FAILED(hr) && attempts < 60);
 	// 60 * 500ms = 30s
 
-	SignalReady();
+	event.SetEvent();
 	return hr;
-}
-
-void TAPSite::SignalReady()
-{
-	wil::unique_event_nothrow readyEvent;
-	if (readyEvent.try_open(TAP_READY_EVENT.c_str(), EVENT_MODIFY_STATE))
-	{
-		readyEvent.SetEvent();
-	}
 }
 
 HRESULT TAPSite::SetSite(IUnknown *pUnkSite) try
@@ -85,8 +78,7 @@ HRESULT TAPSite::SetSite(IUnknown *pUnkSite) try
 
 	if (site)
 	{
-		s_VisualTreeWatcher = winrt::make_self<VisualTreeWatcher>(site);
-		SignalReady();
+		s_VisualTreeWatcher = winrt::make_self<VisualTreeWatcher>(site, GetReadyEvent());
 	}
 
 	return S_OK;

@@ -12,7 +12,7 @@
 struct VisualTreeWatcher : winrt::implements<VisualTreeWatcher, IVisualTreeServiceCallback2, winrt::non_agile>
 {
 public:
-	VisualTreeWatcher(winrt::com_ptr<IUnknown> site);
+	VisualTreeWatcher(winrt::com_ptr<IUnknown> site, wil::unique_event_nothrow&& readyEvent);
 
 	VisualTreeWatcher(const VisualTreeWatcher&) = delete;
 	VisualTreeWatcher& operator=(const VisualTreeWatcher&) = delete;
@@ -38,4 +38,5 @@ private:
 	winrt::com_ptr<IXamlDiagnostics> m_XamlDiagnostics;
 	winrt::com_ptr<TaskbarAppearanceService> m_AppearanceService;
 	std::unordered_set<InstanceHandle> m_NonMatchingXamlSources;
+	wil::unique_event_nothrow m_ReadyEvent; // keep a hold of the event so it stays set
 };

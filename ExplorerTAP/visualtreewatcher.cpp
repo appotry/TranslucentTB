@@ -4,11 +4,13 @@
 #include <winrt/Windows.UI.Xaml.Hosting.h>
 #include "redefgetcurrenttime.h"
 
-VisualTreeWatcher::VisualTreeWatcher(winrt::com_ptr<IUnknown> site) :
+VisualTreeWatcher::VisualTreeWatcher(winrt::com_ptr<IUnknown> site, wil::unique_event_nothrow&& readyEvent) :
 	m_XamlDiagnostics(site.as<IXamlDiagnostics>()),
-	m_AppearanceService(winrt::make_self<TaskbarAppearanceService>())
+	m_AppearanceService(winrt::make_self<TaskbarAppearanceService>()),
+	m_ReadyEvent(std::move(readyEvent))
 {
 	winrt::check_hresult(m_XamlDiagnostics.as<IVisualTreeService3>()->AdviseVisualTreeChange(this));
+	m_ReadyEvent.SetEvent();
 }
 
 HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, VisualElement element, VisualMutationType mutationType) try

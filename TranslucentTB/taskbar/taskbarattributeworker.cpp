@@ -1410,7 +1410,7 @@ void TaskbarAttributeWorker::ResetState(bool manual)
 
 			if (m_TaskbarType == TaskbarType::XAML)
 			{
-				const HRESULT hr = m_InjectExplorerTAP(pid, IID_PPV_ARGS(m_TaskbarService.put()));
+				const HRESULT hr = m_InjectExplorerTAP(main_taskbar, IID_PPV_ARGS(m_TaskbarService.put()));
 				if (hr == HRESULT_FROM_WIN32(ERROR_PRODUCT_VERSION))
 				{
 					Localization::ShowLocalizedMessageBox(IDS_RESTART_REQUIRED, MB_OK | MB_ICONWARNING | MB_SETFOREGROUND, hinstance()).join();

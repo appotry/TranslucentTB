@@ -8,6 +8,6 @@ __declspec(dllexport)
 #else
 __declspec(dllimport)
 #endif
-HRESULT InjectExplorerTAP(DWORD pid, REFIID riid, LPVOID* ppv);
+HRESULT InjectExplorerTAP(HWND window, REFIID riid, LPVOID* ppv);
 
 using PFN_INJECT_EXPLORER_TAP = decltype(&InjectExplorerTAP);
