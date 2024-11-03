@@ -32,7 +32,6 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 		DECL_EVENT(EditSettingsRequestedDelegate, EditSettingsRequested, m_EditSettingsRequestedDelegate);
 		DECL_EVENT(ResetSettingsRequestedDelegate, ResetSettingsRequested, m_ResetSettingsRequestedDelegate);
 		DECL_EVENT(DisableSavingSettingsChangedDelegate, DisableSavingSettingsChanged, m_DisableSavingSettingsChangedDelegate);
-		DECL_EVENT(HideTrayRequestedDelegate, HideTrayRequested, m_HideTrayRequestedDelegate);
 		DECL_EVENT(ResetDynamicStateRequestedDelegate, ResetDynamicStateRequested, m_ResetDynamicStateRequestedDelegate);
 		DECL_EVENT(CompactThunkHeapRequestedDelegate, CompactThunkHeapRequested, m_CompactThunkHeapRequestedDelegate);
 
@@ -59,7 +58,6 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 		void EditSettingsClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
 		void ResetSettingsClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
 		void DisableSavingSettingsClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
-		void HideTrayClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
 		void ResetDynamicStateClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
 		void CompactThunkHeapClicked(const IInspectable &sender, const wux::RoutedEventArgs &args);
 

@@ -15,7 +15,6 @@ namespace TranslucentTB.Xaml.Pages
 	delegate void EditSettingsRequestedDelegate();
 	delegate void ResetSettingsRequestedDelegate();
 	delegate void DisableSavingSettingsChangedDelegate(Boolean disabled);
-	delegate void HideTrayRequestedDelegate();
 	delegate void ResetDynamicStateRequestedDelegate();
 	delegate void CompactThunkHeapRequestedDelegate();
 
@@ -37,7 +36,6 @@ namespace TranslucentTB.Xaml.Pages
 		event EditSettingsRequestedDelegate EditSettingsRequested;
 		event ResetSettingsRequestedDelegate ResetSettingsRequested;
 		event DisableSavingSettingsChangedDelegate DisableSavingSettingsChanged;
-		event HideTrayRequestedDelegate HideTrayRequested;
 		event ResetDynamicStateRequestedDelegate ResetDynamicStateRequested;
 		event CompactThunkHeapRequestedDelegate CompactThunkHeapRequested;
 

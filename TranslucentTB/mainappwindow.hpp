@@ -38,7 +38,6 @@ private:
 	page_t::EditSettingsRequested_revoker m_EditSettingsRequestedRevoker;
 	page_t::ResetSettingsRequested_revoker m_ResetSettingsRequestedRevoker;
 	page_t::DisableSavingSettingsChanged_revoker m_DisableSavingSettingsChangedRevoker;
-	page_t::HideTrayRequested_revoker m_HideTrayRequestedRevoker;
 	page_t::ResetDynamicStateRequested_revoker m_ResetDynamicStateRequestedRevoker;
 	page_t::CompactThunkHeapRequested_revoker m_CompactThunkHeapRequestedRevoker;
 
@@ -63,7 +62,6 @@ private:
 	void EditSettingsRequested();
 	void ResetSettingsRequested();
 	void DisableSavingSettingsChanged(bool disabled) noexcept;
-	void HideTrayRequested();
 	void ResetDynamicStateRequested();
 	static void CompactThunkHeapRequested();
 

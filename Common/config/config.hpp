@@ -47,7 +47,7 @@ public:
 
 	// Advanced
 	WindowFilter IgnoredWindows;
-	bool HideTray = false;
+	std::optional<bool> HideTray;
 	bool DisableSaving = false;
 	spdlog::level::level_enum LogVerbosity = DEFAULT_LOG_VERBOSITY;
 	std::wstring Language;

@@ -201,11 +201,6 @@ namespace winrt::TranslucentTB::Xaml::Pages::implementation
 		m_DisableSavingSettingsChangedDelegate(DisableSavingSettings().IsChecked());
 	}
 
-	void TrayFlyoutPage::HideTrayClicked(const IInspectable &, const wux::RoutedEventArgs &)
-	{
-		m_HideTrayRequestedDelegate();
-	}
-
 	void TrayFlyoutPage::ResetDynamicStateClicked(const IInspectable &, const wux::RoutedEventArgs&)
 	{
 		m_ResetDynamicStateRequestedDelegate();

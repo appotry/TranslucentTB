@@ -329,14 +329,14 @@ void MainAppWindow::ConfigurationChanged()
 {
 	const Config &config = m_App.GetConfigManager().GetConfig();
 
-	UpdateTrayVisibility(!config.HideTray);
+	UpdateTrayVisibility(!config.HideTray.value_or(false));
 	SetXamlContextMenuOverride(config.UseXamlContextMenu);
 }
 
 void MainAppWindow::RemoveHideTrayIconOverride()
 {
 	m_HideIconOverride = false;
-	UpdateTrayVisibility(!m_App.GetConfigManager().GetConfig().HideTray);
+	UpdateTrayVisibility(!m_App.GetConfigManager().GetConfig().HideTray.value_or(false));
 }
 
 void MainAppWindow::PostNewInstanceNotification()
