@@ -18,7 +18,7 @@ if ($BuildType -eq "Release")
 elseif ($BuildType -eq "Canary")
 {
 	$appx_content = $appx_content.Replace("TranslucentTB (Dev)", "TranslucentTB (Canary)")
-	$appx_content = $appx_content.Replace($original_subject, "CN=Charles Milette, O=Charles Milette, L=Greenfield Park, S=Quebec, C=CA")
+	$appx_content = $appx_content.Replace($original_subject, "CN=Charles Milette, O=Charles Milette, L=Greenfield Park, S=Québec, C=CA")
 }
 elseif ($BuildType -eq "Dev")
 {
