@@ -423,8 +423,7 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 	}
 
 	auto &maximisedWindows = taskbar->second.MaximisedWindows;
-	const bool hasMaximizedWindows = SetContainsValidWindows(maximisedWindows);
-	if (config.MaximisedWindowAppearance.Enabled && hasMaximizedWindows)
+	if (config.MaximisedWindowAppearance.Enabled && !maximisedWindows.empty())
 	{
 		if (config.MaximisedWindowAppearance.HasRules())
 		{
@@ -452,10 +451,10 @@ TaskbarAppearance TaskbarAttributeWorker::GetConfig(taskbar_iterator taskbar) co
 		return WithPreview(txmp::TaskbarState::MaximisedWindow, config.MaximisedWindowAppearance);
 	}
 
-	if (config.VisibleWindowAppearance.Enabled && (hasMaximizedWindows || SetContainsValidWindows(taskbar->second.NormalWindows)))
+	if (config.VisibleWindowAppearance.Enabled && (!maximisedWindows.empty() || !taskbar->second.NormalWindows.empty()))
 	{
 		// if there is no maximized window, and the foreground window is on the current monitor
-		if (config.VisibleWindowAppearance.HasRules() && !hasMaximizedWindows && m_ForegroundWindow.monitor() == taskbar->first)
+		if (config.VisibleWindowAppearance.HasRules() && maximisedWindows.empty() && m_ForegroundWindow.monitor() == taskbar->first)
 		{
 			// find a rule for the foreground window
 			if (const auto rule = config.VisibleWindowAppearance.FindRule(m_ForegroundWindow))
@@ -756,15 +755,6 @@ bool TaskbarAttributeWorker::SetNewWindowExStyle(Window wnd, LONG_PTR oldStyle, 
 	{
 		return true;
 	}
-}
-
-bool TaskbarAttributeWorker::SetContainsValidWindows(std::unordered_set<Window> &set)
-{
-	std::erase_if(set, [](Window wnd)
-	{
-		return !wnd.valid();
-	});
-	return !set.empty();
 }
 
 void TaskbarAttributeWorker::DumpWindowSet(std::wstring_view prefix, const std::unordered_set<Window> &set, bool showInfo)

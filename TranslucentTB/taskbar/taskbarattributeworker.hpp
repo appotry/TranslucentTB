@@ -198,7 +198,6 @@ private:
 
 	// Other
 	static bool SetNewWindowExStyle(Window wnd, LONG_PTR oldStyle, LONG_PTR newStyle);
-	static bool SetContainsValidWindows(std::unordered_set<Window> &set);
 	static void DumpWindowSet(std::wstring_view prefix, const std::unordered_set<Window> &set, bool showInfo = true);
 	static std::wstring DumpWindow(Window window);
 	void CreateAppVisibility();
