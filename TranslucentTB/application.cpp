@@ -77,9 +77,9 @@ Application::Application(HINSTANCE hInst, std::optional<std::filesystem::path> s
 		hInst,
 		L"Microsoft.VCLibs.140.00_8wekyb3d8bbwe",
 		PACKAGE_VERSION {
-			// 14.0.33728.0 but the order is reversed because that's how the struct is.
+			// 14.0.33519.0 but the order is reversed because that's how the struct is.
 			.Revision = 0,
-			.Build = 33728,
+			.Build = 33519,
 			.Minor = 0,
 			.Major = 14
 		},
