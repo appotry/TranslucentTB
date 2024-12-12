@@ -9,7 +9,7 @@
     xmlns:primitives="using:TranslucentTB.Xaml.Models.Primitives"
     xmlns:windows11Present="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 14)"
     xmlns:windows11NotPresent="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractNotPresent(Windows.Foundation.UniversalApiContract, 14)"
-    mc:Ignorable="d" x:DefaultBindMode="OneTime">
+    mc:Ignorable="d" x:DefaultBindMode="OneWay">
     <ToolTipService.ToolTip>
         <ToolTip>TranslucentTB</ToolTip>
     </ToolTipService.ToolTip>
@@ -316,12 +316,12 @@
                 <MenuFlyoutSubItem.Icon>
                     <FontIcon Glyph="&#xE713;" />
                 </MenuFlyoutSubItem.Icon>
-                <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_OpenLogFile" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="OpenLogFileClicked" IsEnabled="{x:Bind root:FunctionalConverters.IsSameLogSinkState(SinkState, primitives:LogSinkState.Opened), Mode = OneWay}">
+                <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_OpenLogFile" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="OpenLogFileClicked" IsEnabled="{x:Bind root:FunctionalConverters.IsSameLogSinkState(SinkState, primitives:LogSinkState.Opened)}">
                     <MenuFlyoutItem.Icon>
                         <PathIcon Data="{StaticResource OpenLogFileIcon}" Width="16" Height="16" />
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
-                <MenuFlyoutSubItem x:Name="LogLevelSubMenu" x:Uid="TrayFlyoutPage_Advanced_LogVerbosity" Style="{StaticResource MergeIconsMenuFlyoutSubItem}" IsEnabled="{x:Bind root:FunctionalConverters.IsDifferentLogSinkState(SinkState, primitives:LogSinkState.Failed), Mode = OneWay}">
+                <MenuFlyoutSubItem x:Name="LogLevelSubMenu" x:Uid="TrayFlyoutPage_Advanced_LogVerbosity" Style="{StaticResource MergeIconsMenuFlyoutSubItem}" IsEnabled="{x:Bind root:FunctionalConverters.IsDifferentLogSinkState(SinkState, primitives:LogSinkState.Failed)}">
                     <MenuFlyoutSubItem.Icon>
                         <PathIcon Data="{StaticResource LogVerbosityIcon}" Width="16" Height="16" />
                     </MenuFlyoutSubItem.Icon>
@@ -362,7 +362,7 @@
                         </muxc:RadioMenuFlyoutItem.Tag>
                     </muxc:RadioMenuFlyoutItem>
                 </MenuFlyoutSubItem>
-                <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_DumpDynamicState" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="DumpDynamicStateClicked" IsEnabled="{x:Bind root:FunctionalConverters.IsDifferentLogSinkState(SinkState, primitives:LogSinkState.Failed), Mode = OneWay}">
+                <MenuFlyoutItem x:Uid="TrayFlyoutPage_Advanced_DumpDynamicState" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="DumpDynamicStateClicked" IsEnabled="{x:Bind root:FunctionalConverters.IsDifferentLogSinkState(SinkState, primitives:LogSinkState.Failed)}">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xEBE8;" />
                     </MenuFlyoutItem.Icon>
@@ -391,8 +391,8 @@
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
             </MenuFlyoutSubItem>
-            <ToggleMenuFlyoutItem x:Name="StartupState" x:Uid="TrayFlyoutPage_OpenAtBoot" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="StartupClicked" Visibility="{x:Bind HasPackageIdentity}" />
-            <MenuFlyoutSeparator Visibility="{x:Bind HasPackageIdentity}" />
+            <ToggleMenuFlyoutItem x:Name="StartupState" x:Uid="TrayFlyoutPage_OpenAtBoot" Style="{StaticResource MergeIconsToggleMenuFlyoutItem}" Click="StartupClicked" Visibility="{x:Bind HasPackageIdentity, Mode = OneTime}" />
+            <MenuFlyoutSeparator Visibility="{x:Bind HasPackageIdentity, Mode = OneTime}" />
             <MenuFlyoutItem x:Uid="TrayFlyoutPage_TipsAndTricks" Style="{StaticResource MergeIconsMenuFlyoutItem}" Click="TipsAndTricksClicked">
                 <MenuFlyoutItem.Icon>
                     <FontIcon Glyph="&#xE82F;" />
